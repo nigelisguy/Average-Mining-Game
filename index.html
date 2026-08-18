@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Average Mining Game</title>
+    <style>
+        :root {
+            --primary-color: #10b981;
+            --primary-border: #10b981;
+            --primary-bg-alpha: rgba(16, 185, 129, 0.2);
+            --secondary-color: #3b82f6;
+            --secondary-border: #3b82f6;
+            --base-font-size: 12px;
+            
+            --bg-main: #0c0d10;
+            --bg-viewport: #050505;
+            --bg-sidebar: #16171d;
+            --bg-header: #111216;
+            --bg-card: #20222a;
+            --bg-box: #121316;
+            --bg-item: #1b1d24;
+            --border-color: #2a2c34;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --text-title: #f8fafc;
+        }
+
+        body.light-mode {
+            --bg-main: #f1f5f9;
+            --bg-viewport: #e2e8f0;
+            --bg-sidebar: #ffffff;
+            --bg-header: #f8fafc;
+            --bg-card: #f1f5f9;
+            --bg-box: #e2e8f0;
+            --bg-item: #cbd5e1;
+            --border-color: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-title: #020817;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; font-size: var(--base-font-size); }
+        #game-container { display: flex; width: 100vw; height: 100vh; position: relative; }
+        #viewport { flex: 1; position: relative; background: var(--bg-viewport); display: flex; justify-content: center; align-items: center; }
+        canvas { background-color: var(--bg-viewport); image-rendering: pixelated; }
+
+        #hud-container {
+            position: absolute; top: 12px; left: 12px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; z-index: 100;
+        }
+
+        #save-status {
+            background: var(--primary-bg-alpha); color: var(--primary-color); border: 1px solid var(--primary-border);
+            padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; opacity: 0;
+            transition: opacity 0.5s; width: fit-content;
+        }
+
+        #pos-display {
+            background: rgba(15, 23, 42, 0.85); color: var(--secondary-color); border: 1px solid var(--border-color);
+            padding: 4px 8px; border-radius: 4px; font-size: 0.9em; font-weight: bold; width: fit-content;
+        }
+
+        #top-inv-warning {
+            display: none; background: #ef4444; color: #fff; padding: 6px 10px; border-radius: 4px;
+            font-size: 0.85em; font-weight: bold; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+            animation: pulse-red 0.8s infinite alternate; width: fit-content;
+        }
+
+        @keyframes pulse-red {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0.7; transform: scale(0.96); }
+        }
+
+        @keyframes rainbow-glow {
+            0% { border-color: #ff0000; box-shadow: 0 0 8px #ff0000; }
+            20% { border-color: #ffff00; box-shadow: 0 0 8px #ffff00; }
+            40% { border-color: #00ff00; box-shadow: 0 0 8px #00ff00; }
+            60% { border-color: #00ffff; box-shadow: 0 0 8px #00ffff; }
+            80% { border-color: #0000ff; box-shadow: 0 0 8px #0000ff; }
+            100% { border-color: #ff00ff; box-shadow: 0 0 8px #ff00ff; }
+        }
+
+        #tooltip {
+            position: absolute; display: none; background: rgba(15, 23, 42, 0.98);
+            color: #fff; padding: 12px 16px; border-radius: 6px; border: 2px solid #475569;
+            font-size: 1em; line-height: 1.5; pointer-events: none; z-index: 1000;
+            width: 280px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        .tt-title { font-weight: bold; font-size: 1.1em; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .tt-badge { padding: 2px 6px; border-radius: 3px; font-size: 0.75em; font-weight: bold; color: #fff; text-transform: uppercase; }
+
+        #sidebar { width: 440px; background-color: var(--bg-sidebar); border-left: 2px solid var(--border-color); display: flex; flex-direction: column; height: 100vh; }
+        .tabs { display: flex; background-color: var(--bg-header); border-bottom: 2px solid var(--border-color); flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 55px; padding: 12px 2px; background: none; border: none; color: var(--text-muted); font-weight: bold; cursor: pointer; font-size: 0.85em; text-align: center; }
+        .tab-btn.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); background-color: var(--bg-sidebar); }
+        
+        .main-tab-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .tab-content { display: none; padding: 16px; flex-direction: column; gap: 16px; }
+        .tab-content.active { display: flex; }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; }
+        .card-title { font-size: 1.05em; font-weight: bold; color: var(--primary-color); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 0.95em; }
+        .stat-box { background: var(--bg-box); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); }
+        .stat-val { font-size: 1.15em; font-weight: bold; color: var(--text-title); }
+
+        .shop-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-box); padding: 12px; border-radius: 6px; margin-bottom: 10px; position: relative; gap: 12px; border: 1px solid var(--border-color); }
+        .shop-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .shop-title { font-size: 1em; font-weight: bold; color: var(--text-title); }
+        .shop-desc { font-size: 0.85em; color: var(--text-muted); line-height: 1.4; }
+        
+        .btn { background: var(--secondary-color); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; white-space: nowrap; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-sell { background: var(--primary-color); width: 100%; margin-top: 8px; color: #fff; }
+        .btn-action { background: var(--secondary-color); }
+        .btn-danger { background: #ef4444; }
+
+        .sort-select { background: var(--bg-box); color: var(--text-main); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
+
+        .index-grid { display: flex; flex-direction: column; gap: 8px; max-height: 480px; overflow-y: auto; }
+        .index-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-box); padding: 8px 12px; border-radius: 6px; border-left: 4px solid #475569; }
+        .index-item.unseen { opacity: 0.4; filter: grayscale(1); }
+        .index-info { display: flex; flex-direction: column; gap: 2px; }
+        .index-title { font-weight: bold; font-size: 0.95em; display: flex; align-items: center; gap: 6px; }
+        .index-counts { font-size: 0.8em; color: var(--text-muted); }
+
+        .news-article { background: var(--bg-box); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 8px; }
+        .news-date { font-size: 0.75em; color: var(--text-muted); font-weight: bold; }
+        .news-header { font-size: 0.95em; font-weight: bold; color: var(--secondary-color); margin: 2px 0 6px 0; }
+        .news-body { font-size: 0.85em; color: var(--text-main); line-height: 1.4; }
+
+        #permanent-inventory {
+            height: 42%;
+            border-top: 2px solid var(--border-color);
+            background: var(--bg-header);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        #inventory-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .inv-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-item); padding: 8px 10px; border-radius: 6px; font-size: 0.85em; border: 2px solid transparent; }
+        .inv-item.shiny-item { animation: rainbow-glow 2s infinite linear; }
+        .inv-left { display: flex; align-items: center; gap: 10px; }
+        .inv-img { width: 26px; height: 26px; object-fit: contain; border-radius: 3px; }
+        .inv-placeholder { width: 26px; height: 26px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #fff; }
+        .inv-controls { display: flex; align-items: center; gap: 6px; }
+        .reserve-btn { background: var(--border-color); color: var(--text-main); border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9em; }
+        .reserve-btn:hover { background: var(--secondary-color); color: #fff; }
+
+        #tree-container { width: 100%; height: 380px; background: var(--bg-main); border-radius: 6px; position: relative; overflow: hidden; border: 1px solid var(--border-color); }
+        svg#tree-connections { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .node { position: absolute; width: 54px; height: 54px; border-radius: 50%; background: var(--bg-card); border: 2px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65em; text-align: center; cursor: pointer; z-index: 2; transform: translate(-50%, -50%); transition: 0.2s; color: var(--text-muted); padding: 4px; line-height: 1.1; }
+        .node.unlocked { background: #059669; border-color: #6ee7b7; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5); color: #fff; }
+        .node.available { border-color: #f59e0b; color: #fbbf24; }
+        .node.maxed { background: #1e3a8a; border-color: var(--secondary-color); color: #fff; }
+
+        #chest-modal { display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 2500; align-items: center; justify-content: center; }
+        .chest-content { background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 8px; width: 340px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+        .chest-loot-list { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
+
+        /* Floating action buttons at bottom-left */
+        .floating-btn-group {
+            position: absolute; bottom: 16px; left: 16px; display: flex; gap: 10px; z-index: 500;
+        }
+        .floating-circle-btn {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: var(--bg-card); border: 2px solid var(--border-color); color: var(--text-main); font-size: 18px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: transform 0.2s, background 0.2s;
+        }
+        .floating-circle-btn:hover { transform: scale(1.08); border-color: var(--primary-color); }
+
+        #settings-modal, #log-modal {
+            display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85); z-index: 3000; align-items: center; justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; width: 360px; padding: 20px; display: flex; flex-direction: column; gap: 16px;
+        }
+
+        .setting-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.95em; }
+        .color-picker-group { display: flex; gap: 6px; }
+        .color-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-dot.active { border-color: #ffffff; transform: scale(1.15); }
+
+        .log-container { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; font-family: monospace; font-size: 0.85em; background: var(--bg-box); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .log-entry { padding: 4px; border-bottom: 1px solid var(--border-color); word-break: break-word; }
+        .log-entry.action { color: #38bdf8; }
+        .log-entry.error { color: #ef4444; font-weight: bold; }
+        .log-entry.info { color: #10b981; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="viewport">
+        <canvas id="gameCanvas" width="640" height="640"></canvas>
+        <div id="hud-container">
+            <div id="top-inv-warning">INVENTORY FULL!</div>
+            <div id="save-status">Game Saved</div>
+            <div id="pos-display">X: 10, Y: 0</div>
+        </div>
+        <div id="tooltip"></div>
+    </div>
+
+    <div id="sidebar">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-base')">Stats</button>
+            <button class="tab-btn" onclick="switchTab('tab-shop')">Shop</button>
+            <button class="tab-btn" onclick="switchTab('tab-craft')">Craft</button>
+            <button class="tab-btn" onclick="switchTab('tab-tree')">Skill Tree</button>
+            <button class="tab-btn" onclick="switchTab('tab-index')">Index</button>
+            <button class="tab-btn" onclick="switchTab('tab-museum')">Museum</button>
+            <button class="tab-btn" onclick="switchTab('tab-news')">News</button>
+        </div>
+
+        <div class="main-tab-area">
+            <div id="tab-base" class="tab-content active">
+                <div class="card">
+                    <div class="card-title">Miner Status</div>
+                    <div class="stat-grid">
+                        <div class="stat-box"><div>Coins</div><div class="stat-val" id="val-coins">$0</div></div>
+                        <div class="stat-box"><div>Depth</div><div class="stat-val" id="val-depth">0m</div></div>
+                        <div class="stat-box"><div>Level / XP</div><div class="stat-val" id="val-level">Lvl 1</div></div>
+                        <div class="stat-box"><div>Skill Points</div><div class="stat-val" id="val-sp" style="color:#f59e0b">0</div></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Equipped Pickaxe</div>
+                    <div style="font-size:0.9em; line-height:1.5;">
+                        <div>Equipped: <b id="equipped-name" style="color:var(--secondary-color)">Basic Pickaxe</b></div>
+                        <div style="color:var(--text-muted); font-size:0.85em;" id="equipped-ability">Ability: Standard mining</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-shop" class="tab-content">
+                <div class="card">
+                    <div class="card-title">Upgrades (+1/+2 Max)</div>
+                    <div class="shop-item">
+                        <div class="shop-info">
+                            <span class="shop-title">Pickaxe Power</span>
+                            <span class="shop-desc" id="desc-power">Power: 1 ➔ 2</span>
+                        </div>
+                        <button class="btn" id="btn-up-power">$10</button>
+                    </div>
+                    <div class="shop-item">
+                        <div class="shop-info">
+                            <span class="shop-title">Backpack Size</span>
+                            <span class="shop-desc" id="desc-cap">Capacity: 20 ➔ 30</span>
+                        </div>
+                        <button class="btn" id="btn-up-cap">$15</button>
+                    </div>
+                    <div class="shop-item">
+                        <div class="shop-info">
+                            <span class="shop-title">Mining Luck</span>
+                            <span class="shop-desc" id="desc-luck">Luck: 1 ➔ 2</span>
+                        </div>
+                        <button class="btn" id="btn-up-luck">$25</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-craft" class="tab-content">
+                <div class="card">
+                    <div class="card-title">Special Equipment & Buildings</div>
+                    <div class="shop-item">
+                        <div class="shop-info">
+                            <span class="shop-title">Museum Display Stand</span>
+                            <span class="shop-desc">Unlocks Museum Side-Mode to earn passive Hype $</span>
+                        </div>
+                        <button class="btn btn-action" id="btn-craft-museum">Craft ($50)</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Skill Charges</div>
+                    <div class="stat-grid">
+                        <div class="stat-box">Teleports: <b id="cnt-tp">0</b></div>
+                        <div class="stat-box">Bombs: <b id="cnt-nuke">0</b></div>
+                    </div>
+                    <div style="display:flex; gap:6px; margin-top:8px;">
+                        <button class="btn btn-action" style="flex:1" id="btn-use-tp">Use TP (+50m)</button>
+                        <button class="btn btn-action" style="flex:1" id="btn-use-nuke">Use Bomb (3x3)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-tree" class="tab-content">
+                <div class="card">
+                    <div class="card-title">
+                        <span>Skill Tree</span>
+                        <span id="tree-sp-display" style="color:#f59e0b">SP: 0</span>
+                    </div>
+                    <div id="tree-container">
+                        <svg id="tree-connections"></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-index" class="tab-content">
+                <div class="card">
+                    <div class="card-title">Block Catalog & Bestiary</div>
+                    <div id="index-grid" class="index-grid"></div>
+                </div>
+            </div>
+
+            <div id="tab-museum" class="tab-content">
+                <div class="card">
+                    <div class="card-title">Museum Exhibition</div>
+                    <div id="museum-status" style="font-size:0.9em; color:var(--text-muted)">Museum Stand Not Built!</div>
+                    <div id="museum-display-card" style="display:none; margin-top:8px;" class="shop-item">
+                        <div class="shop-info">
+                            <span class="shop-title" id="museum-item-name">None</span>
+                            <span class="shop-desc" id="museum-item-desc">No high rarity blocks found in vault!</span>
+                            <span class="shop-desc" style="color:#f59e0b; font-weight:bold" id="museum-hype-rate">Hype Rate: $0.00/sec</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">
+                        <span>Collection Vault (>UR Rarities)</span>
+                        <select id="vault-sort" class="sort-select" onchange="updateUI()">
+                            <option value="none">Sort: Default</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="rarity-high">Rarity: High to Low</option>
+                            <option value="rarity-low">Rarity: Low to High</option>
+                        </select>
+                    </div>
+                    <div id="vault-list" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;"></div>
+                </div>
+            </div>
+
+            <div id="tab-news" class="tab-content">
+                <div class="card">
+                    <div class="card-title">AMG News</div>
+                    <div class="news-article">
+                        <div class="news-date">SYSTEM UPDATE • TODAY</div>
+                        <div class="news-header">0.1 Beta Release</div>
+                        <div class="news-body">Initial release. Hello World!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="permanent-inventory">
+            <div class="card-title" style="margin: 0;">
+                <span>Backpack Controls</span>
+                <select id="inv-sort" class="sort-select" onchange="updateUI()">
+                    <option value="none">Sort: Default</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="rarity-high">Rarity: High to Low</option>
+                    <option value="rarity-low">Rarity: Low to High</option>
+                </select>
+                <span id="val-cap">0/20</span>
+            </div>
+            <div id="inventory-list"></div>
+            <button class="btn btn-sell" id="btn-sell-ores">Sell Non-Reserved Ores</button>
+        </div>
+    </div>
+
+    <div class="floating-btn-group">
+        <button class="floating-circle-btn" id="btn-open-log" title="Action & Error Log">📋</button>
+        <button class="floating-circle-btn" id="btn-open-settings" title="Settings">⚙</button>
+    </div>
+</div>
+
+<div id="chest-modal">
+    <div class="chest-content">
+        <div class="card-title" style="margin:0">Mineshaft Loot Chest!</div>
+        <div class="chest-loot-list" id="chest-loot-list"></div>
+        <button class="btn btn-sell" id="btn-loot-all">Loot All</button>
+    </div>
+</div>
+
+<div id="settings-modal">
+    <div class="modal-content">
+        <div class="card-title" style="margin:0; font-size:1.2em;">Settings</div>
+
+        <div class="setting-row">
+            <span>Theme Mode:</span>
+            <select id="setting-theme" style="background:var(--bg-box); color:var(--text-main); border:1px solid var(--border-color); padding:4px 8px; border-radius:4px;">
+                <option value="dark" selected>Dark Mode</option>
+                <option value="light">Light Mode</option>
+            </select>
+        </div>
+
+        <div class="setting-row">
+            <span>Font Size:</span>
+            <select id="setting-font-size" style="background:var(--bg-box); color:var(--text-main); border:1px solid var(--border-color); padding:4px 8px; border-radius:4px;">
+                <option value="10px">Small</option>
+                <option value="12px" selected>Medium</option>
+                <option value="14px">Large</option>
+            </select>
+        </div>
+
+        <div class="setting-row">
+            <span>Primary UI Color:</span>
+            <div class="color-picker-group">
+                <div class="color-dot primary-dot active" style="background:#10b981;" data-color="#10b981"></div>
+                <div class="color-dot primary-dot" style="background:#3b82f6;" data-color="#3b82f6"></div>
+                <div class="color-dot primary-dot" style="background:#8b5cf6;" data-color="#8b5cf6"></div>
+                <div class="color-dot primary-dot" style="background:#f59e0b;" data-color="#f59e0b"></div>
+            </div>
+        </div>
+
+        <div class="setting-row">
+            <span>Secondary UI Color:</span>
+            <div class="color-picker-group">
+                <div class="color-dot secondary-dot" style="background:#06b6d4;" data-color="#06b6d4"></div>
+                <div class="color-dot secondary-dot active" style="background:#3b82f6;" data-color="#3b82f6"></div>
+                <div class="color-dot secondary-dot" style="background:#ec4899;" data-color="#ec4899"></div>
+                <div class="color-dot secondary-dot" style="background:#84cc16;" data-color="#84cc16"></div>
+            </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border-color); padding-top:12px;">
+            <button class="btn btn-danger" style="width:100%" id="btn-reset-save">Reset Save File</button>
+        </div>
+        <button class="btn" style="margin-top:4px;" id="btn-close-settings">Close</button>
+    </div>
+</div>
+
+<div id="log-modal">
+    <div class="modal-content">
+        <div class="card-title" style="margin:0; font-size:1.2em;">Action & System Console</div>
+        <div class="log-container" id="log-content-box"></div>
+        <div style="display:flex; gap:8px;">
+            <button class="btn btn-danger" style="flex:1" id="btn-clear-logs">Clear Logs</button>
+            <button class="btn" style="flex:1" id="btn-close-log">Close</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { SKILL_TREE_NODES, isNodeUnlocked } from './skills.js';
+
+    const RARITIES = {
+        c:   { name: 'Common', color: '#808080', valMult: 1, splitVault: false, rank: 1, weight: 6000 },
+        cr:  { name: 'Common Rare', color: '#505050', valMult: 1.2, splitVault: false, rank: 2, weight: 2500 },
+        r:   { name: 'Rare', color: '#2EA043', valMult: 1.5, splitVault: false, rank: 3, weight: 1000 },
+        mr:  { name: 'More Rare', color: '#00FF66', valMult: 2, splitVault: false, rank: 4, weight: 350 },
+        sr:  { name: 'Super Rare', color: '#00FFFF', valMult: 3, splitVault: false, rank: 5, weight: 120 },
+        ur:  { name: 'Ultra Rare', color: '#0066FF', valMult: 5, splitVault: true, rank: 6, weight: 25 },
+        m:   { name: 'Mythic', color: '#FF0000', valMult: 10, splitVault: true, rank: 7, weight: 4 },
+        l:   { name: 'Legendary', color: '#FFD700', valMult: 25, splitVault: true, rank: 8, weight: 0.8 },
+        hl:  { name: 'Hyper Legendary', color: '#FF69B4', valMult: 100, splitVault: true, rank: 9, weight: 0.1 },
+        'o-o': { name: 'One in One', color: '#000000', valMult: 1000, splitVault: true, rank: 10, weight: 0.01 }
+    };
+
+    const ORES = {
+        sky: { name: 'Sky', color: '#38bdf8', hp: 0, costPerKg: 0, rarity: 'c', desc: 'Airy above.' },
+        leaf_litter: { id: 'leaf_litter', name: 'Leaf Litter', rarity: 'c', hp: 3, costPerKg: 0.05, color: '#4d7c0f', desc: 'Decomposing leaves mixed with topsoil.' },
+        dirt: { id: 'dirt', name: 'Dirt', rarity: 'c', hp: 5, costPerKg: 0.07, color: '#78350f', desc: 'Plain old garden dirt.' },
+        coarse_dirt: { id: 'coarse_dirt', name: 'Coarse Dirt', rarity: 'c', hp: 7, costPerKg: 0.07, color: '#92400e', desc: 'Packed earth full of tiny roots and twigs.' },
+        pebbled_dirt: { id: 'pebbled_dirt', name: 'Pebbled Dirt', rarity: 'cr', hp: 11, costPerKg: 0.10, color: '#b45309', desc: 'Gritty dirt studded with small river stones.' },
+        boulder: { id: 'boulder', name: 'Boulder', rarity: 'cr', hp: 15, costPerKg: 0.12, color: '#6b7280', desc: 'Heavy unrefined rock fragment.' },
+        anthill: { id: 'anthill', name: 'Anthill', rarity: 'r', hp: 30, costPerKg: 0.20, color: '#d97706', desc: 'Intricate tunnel networks filled with busy insects.' },
+        gravel: { id: 'gravel', name: 'Gravel', rarity: 'r', hp: 25, costPerKg: 0.25, color: '#9ca3af', desc: 'Loose aggregate of worn stones.' },
+        lost_coin: { id: 'lost_coin', name: 'Lost Coin', rarity: 'sr', hp: 30, costPerKg: 0.50, color: '#facc15', desc: 'A dropped tarnished copper coin from surface dwellers.' },
+        pocketed_clover: { id: 'pocketed_clover', name: 'Pocketed Clover', rarity: 'ur', hp: 50, costPerKg: 1.00, color: '#22c55e', desc: 'Four leaves of pure luck, compressed under years of topsoil.' },
+        soft_rock: { id: 'soft_rock', name: 'Soft Rock', rarity: 'c', hp: 40, costPerKg: 0.30, color: '#64748b', desc: 'Sedimentary stone that crumbles under pressure.' },
+        limestone: { id: 'limestone', name: 'Limestone', rarity: 'cr', hp: 65, costPerKg: 0.55, color: '#cbd5e1', desc: 'Calcium carbonate rock built from ancient sea life.' },
+        fossilized_shell: { id: 'fossilized_shell', name: 'Fossilized Shell', rarity: 'r', hp: 90, costPerKg: 0.90, color: '#fdba74', desc: 'Prehistoric marine organism preserved in stone.' },
+        dense_flint: { id: 'dense_flint', name: 'Dense Flint', rarity: 'mr', hp: 130, costPerKg: 1.75, color: '#334155', desc: 'Sharp, dark crypto-crystalline quartz.' },
+        geode_fragment: { id: 'geode_fragment', name: 'Geode Fragment', rarity: 'sr', hp: 200, costPerKg: 3.50, color: '#c084fc', desc: 'Sparkling hollow rock lined with purple crystals.' },
+        granite_core: { id: 'granite_core', name: 'Granite Core', rarity: 'ur', hp: 350, costPerKg: 8.00, color: '#f87171', desc: 'Coarse igneous rock formed deep underground.' },
+        petrified_amber: { id: 'petrified_amber', name: 'Petrified Amber', rarity: 'm', hp: 600, costPerKg: 25.00, color: '#fbbf24', desc: 'Fossilized tree resin trapping ancient air bubbles.' },
+        basalt_block: { id: 'basalt_block', name: 'Basalt Block', rarity: 'c', hp: 250, costPerKg: 1.50, color: '#1e293b', desc: 'Dark volcanic rock solid as bedrock.' },
+        iron_ore: { id: 'iron_ore', name: 'Iron Ore', rarity: 'cr', hp: 400, costPerKg: 3.00, color: '#ea580c', desc: 'Heavy metallic vein glowing with rusted iron.' },
+        obsidian_slate: { id: 'obsidian_slate', name: 'Obsidian Slate', rarity: 'r', hp: 750, costPerKg: 6.50, color: '#020617', desc: 'Glassy volcanic slate with knife-sharp edges.' },
+        deep_quartz: { id: 'deep_quartz', name: 'Deep Quartz', rarity: 'mr', hp: 1200, costPerKg: 14.00, color: '#e0e7ff', desc: 'Pure white mineral crystal grown in hyper-pressure.' },
+        cobalt_vein: { id: 'cobalt_vein', name: 'Cobalt Vein', rarity: 'sr', hp: 2000, costPerKg: 35.00, color: '#2563eb', desc: 'Luminous blue magnetic ore.' },
+        magma_crystal: { id: 'magma_crystal', name: 'Magma Crystal', rarity: 'ur', hp: 3800, costPerKg: 90.00, color: '#ef4444', desc: 'Pulsating crystal infused with core geothermal heat.' },
+        void_shard: { id: 'void_shard', name: 'Void Shard', rarity: 'm', hp: 7000, costPerKg: 280.00, color: '#7e22ce', desc: 'Matter-absorbing crystal shard that chills the air.' },
+        celestial_core: { id: 'celestial_core', name: 'Celestial Core', rarity: 'l', hp: 15000, costPerKg: 1000.00, color: '#facc15', desc: 'Fragment of a fallen star buried under centuries of strata.' },
+        aether_cluster: { id: 'aether_cluster', name: 'Aether Cluster', rarity: 'hl', hp: 40000, costPerKg: 5000.00, color: '#f472b6', desc: 'Levitating crystalline cluster defying sub-surface gravity.' },
+        singularity_ore: { id: 'singularity_ore', name: 'Singularity Ore', rarity: 'o-o', hp: 100000, costPerKg: 100000.00, color: '#09090b', desc: '1 in 150M anomaly. Distorts space and time around its center.' }
+    };
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('tooltip');
+    const saveStatus = document.getElementById('save-status');
+    const posDisplay = document.getElementById('pos-display');
+    const topInvWarning = document.getElementById('top-inv-warning');
+
+    const TILE_SIZE = 32;
+    const VIEW_WIDTH = 20;
+    const VIEW_HEIGHT = 20;
+
+    let player = {
+        x: 10, y: 0, dirX: 0, dirY: 1,
+        coins: 0, level: 1, xp: 0, xpNext: 100, sp: 0,
+        basePower: 1, baseCapacity: 20, baseLuck: 1,
+        inventory: [],
+        vault: [],
+        hasMuseum: false,
+        skills: { tp: 0, nuke: 0 },
+        unlockedNodes: { 'root': 1 },
+        index: {}
+    };
+
+    let settings = { fontSize: '12px', color: '#10b981', secondaryColor: '#3b82f6', theme: 'dark' };
+    let costs = { power: 10, cap: 15, luck: 25 };
+    let worldMap = {};
+    let imageCache = {};
+    let pendingChestLoot = [];
+    let logEntries = [];
+
+    function addLog(msg, type = 'action') {
+        const timeStr = new Date().toLocaleTimeString();
+        logEntries.unshift({ msg: `[${timeStr}] ${msg}`, type });
+        if (logEntries.length > 80) logEntries.pop();
+        renderLogs();
+    }
+
+    function renderLogs() {
+        const box = document.getElementById('log-content-box');
+        if (!box) return;
+        box.innerHTML = logEntries.map(e => `<div class="log-entry ${e.type}">${e.msg}</div>`).join('');
+    }
+
+    window.onerror = function (msg, url, line) {
+        addLog(`ERR: ${msg} (Line ${line})`, 'error');
+    };
+
+    function getTotalPower() {
+        let p = player.basePower;
+        const powLevel = player.unlockedNodes['pow_branch'] || 0;
+        if (powLevel > 0) {
+            const bonuses = [0, 1, 2, 4];
+            p += bonuses[powLevel] || 0;
+        }
+        const hsLevel = player.unlockedNodes['heavy_strike'] || 0;
+        if (hsLevel > 0) {
+            const bonuses = [0, 5, 10];
+            p += bonuses[hsLevel] || 0;
+        }
+        return p;
+    }
+
+    function getTotalLuck() {
+        let l = player.baseLuck;
+        const luckLevel = player.unlockedNodes['luck_branch'] || 0;
+        if (luckLevel > 0) {
+            const bonuses = [0, 1, 2, 3];
+            l += bonuses[luckLevel] || 0;
+        }
+        return l;
+    }
+
+    function getTotalCapacity() {
+        let c = player.baseCapacity;
+        const vLevel = player.unlockedNodes['vault_expansion'] || 0;
+        if (vLevel > 0) {
+            const bonuses = [0, 10, 25];
+            c += bonuses[vLevel] || 0;
+        }
+        return c;
+    }
+
+    function getItemValue(item) {
+        const ore = ORES[item.oreKey];
+        return item.weight * ore.costPerKg * (item.isShiny ? 2048 : 1);
+    }
+
+    function sortItemList(list, sortType) {
+        if (sortType === 'none') return list;
+        return [...list].sort((a, b) => {
+            if (sortType === 'price-high') return getItemValue(b) - getItemValue(a);
+            if (sortType === 'price-low') return getItemValue(a) - getItemValue(b);
+            if (sortType === 'rarity-high') return RARITIES[ORES[b.oreKey].rarity].rank - RARITIES[ORES[a.oreKey].rarity].rank;
+            if (sortType === 'rarity-low') return RARITIES[ORES[a.oreKey].rarity].rank - RARITIES[ORES[b.oreKey].rarity].rank;
+            return 0;
+        });
+    }
+
+    function trackIndex(oreKey, isShiny, isMined) {
+        if (!ORES[oreKey] || oreKey === 'sky') return;
+        if (!player.index[oreKey]) {
+            player.index[oreKey] = { seenNormal: false, seenShiny: false, minedNormal: 0, minedShiny: 0 };
+        }
+        const data = player.index[oreKey];
+        if (isMined) {
+            if (isShiny) data.minedShiny++;
+            else data.minedNormal++;
+        } else {
+            if (isShiny) data.seenShiny = true;
+            else data.seenNormal = true;
+        }
+    }
+
+    function getOreImage(oreKey) {
+        if (!ORES[oreKey]) return null;
+        if (!imageCache[oreKey]) {
+            const img = new Image();
+            img.src = `assets/${oreKey}.png`;
+            img.onload = () => { imageCache[oreKey].loaded = true; };
+            img.onerror = () => { imageCache[oreKey].failed = true; };
+            imageCache[oreKey] = { img, loaded: false, failed: false };
+        }
+        return imageCache[oreKey].loaded ? imageCache[oreKey].img : null;
+    }
+
+    function pseudoNoise(x, y) {
+        let n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+        return n - Math.floor(n);
+    }
+
+    function rollOreByDepth(y, highRarityOnly = false) {
+        const pool1 = ['leaf_litter','dirt','coarse_dirt','pebbled_dirt','boulder','anthill','gravel','lost_coin','pocketed_clover'];
+        const pool2 = ['soft_rock','limestone','fossilized_shell','dense_flint','geode_fragment','granite_core','petrified_amber'];
+        const pool3 = ['basalt_block','iron_ore','obsidian_slate','deep_quartz','cobalt_vein','magma_crystal','void_shard','celestial_core','aether_cluster','singularity_ore'];
+
+        let selectedPool;
+        if (y <= 45) selectedPool = pool1;
+        else if (y <= 145) selectedPool = pool2;
+        else selectedPool = pool3;
+
+        if (highRarityOnly) {
+            const filtered = selectedPool.filter(key => RARITIES[ORES[key].rarity].rank >= 5);
+            if (filtered.length > 0) selectedPool = filtered;
+        }
+
+        let totalWeight = 0;
+        const weightedItems = selectedPool.map(key => {
+            const ore = ORES[key];
+            const w = RARITIES[ore.rarity].weight;
+            totalWeight += w;
+            return { key, weight: w };
+        });
+
+        let randomNum = Math.random() * totalWeight;
+        for (let i = 0; i < weightedItems.length; i++) {
+            if (randomNum < weightedItems[i].weight) {
+                return weightedItems[i].key;
+            }
+            randomNum -= weightedItems[i].weight;
+        }
+
+        return selectedPool[0];
+    }
+
+    function getBlock(x, y) {
+        if (y < 1) return { type: 'sky', solid: false, revealed: true };
+        if (worldMap[`${x},${y}`]) return worldMap[`${x},${y}`];
+        return { type: 'unloaded', solid: true, revealed: false };
+    }
+
+    function revealBlock(x, y) {
+        if (y < 1) return;
+        const key = `${x},${y}`;
+        if (!worldMap[key] || !worldMap[key].revealed) {
+            const caveVal = pseudoNoise(x * 0.15, y * 0.15);
+            const isChest = caveVal > 0.88 && y > 5;
+            
+            // Increased Air Pockets: Threshold lowered from 0.72 to 0.58 (~30% air pocket density)
+            let blockType = isChest ? 'chest' : ((caveVal > 0.58 && y > 3) ? 'air' : rollOreByDepth(y));
+
+            const isShiny = Math.random() < (1 / 2048);
+
+            worldMap[key] = {
+                type: blockType,
+                hp: isChest ? 20 : (ORES[blockType] ? ORES[blockType].hp : 10),
+                maxHp: isChest ? 20 : (ORES[blockType] ? ORES[blockType].hp : 10),
+                solid: blockType !== 'air',
+                revealed: true,
+                isShiny: isShiny,
+                isChest: isChest
+            };
+
+            if (ORES[blockType]) {
+                trackIndex(blockType, isShiny, false);
+            }
+        }
+    }
+
+    function safeSpawnPlayer(targetX, targetY) {
+        player.x = targetX; player.y = Math.max(0, targetY);
+        revealSurrounding(player.x, player.y);
+        const currKey = `${player.x},${player.y}`;
+        if (worldMap[currKey] && worldMap[currKey].solid) {
+            worldMap[currKey].type = 'air'; worldMap[currKey].solid = false;
+        }
+    }
+
+    function revealSurrounding(px, py) {
+        for (let dy = -2; dy <= 2; dy++) {
+            for (let dx = -2; dx <= 2; dx++) {
+                revealBlock(px + dx, py + dy);
+            }
+        }
+    }
+
+    function openChestLoot(x, y) {
+        addLog(`Opened mineshaft loot chest at ${x}, ${y}!`, 'info');
+        const chestLootCount = 2 + Math.floor(Math.random() * 3);
+        pendingChestLoot = [];
+
+        for (let i = 0; i < chestLootCount; i++) {
+            const oreKey = rollOreByDepth(y, true);
+            const isShiny = Math.random() < 0.1;
+            const baseWeight = 0.5 + Math.random() * 4.5;
+            const weight = parseFloat((baseWeight * (1 + (getTotalLuck() * 0.05))).toFixed(2));
+
+            pendingChestLoot.push({
+                id: Date.now() + Math.random() + i,
+                oreKey: oreKey,
+                weight: weight,
+                isShiny: isShiny,
+                reserved: false
+            });
+        }
+
+        renderChestModal();
+        document.getElementById('chest-modal').style.display = 'flex';
+    }
+
+    function renderChestModal() {
+        const listEl = document.getElementById('chest-loot-list');
+        listEl.innerHTML = pendingChestLoot.map(item => {
+            const ore = ORES[item.oreKey];
+            const rarity = RARITIES[ore.rarity];
+            return `
+                <div class="inv-item" style="border-color:${rarity.color}">
+                    <div style="color:${rarity.color}; font-weight:bold">${ore.name} ${item.isShiny ? '✨' : ''}</div>
+                    <div>${item.weight} kg</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    document.getElementById('btn-loot-all').onclick = () => {
+        pendingChestLoot.forEach(item => {
+            const oreData = ORES[item.oreKey];
+            trackIndex(item.oreKey, item.isShiny, true);
+
+            if (RARITIES[oreData.rarity].splitVault) {
+                player.vault.push(item);
+                addLog(`Chest item stored in Vault: ${oreData.name} (${RARITIES[oreData.rarity].name})`, 'action');
+            } else if (player.inventory.length < getTotalCapacity()) {
+                player.inventory.push(item);
+            }
+        });
+
+        pendingChestLoot = [];
+        document.getElementById('chest-modal').style.display = 'none';
+        updateUI();
+    };
+
+    function executeMineSingle(x, y) {
+        const key = `${x},${y}`;
+        const block = worldMap[key];
+        if (!block || !block.revealed || !block.solid || block.type === 'air' || block.type === 'sky') return;
+
+        block.hp -= getTotalPower();
+
+        if (block.hp <= 0) {
+            if (block.isChest) {
+                block.type = 'air'; block.solid = false;
+                player.x = x; player.y = y;
+                revealSurrounding(player.x, player.y);
+                openChestLoot(x, y);
+                return;
+            }
+
+            if (player.inventory.length >= getTotalCapacity()) {
+                topInvWarning.style.display = 'block';
+                addLog(`Mining blocked: Inventory is full!`, 'error');
+                setTimeout(() => { topInvWarning.style.display = 'none'; }, 1500);
+                return;
+            }
+
+            const oreKey = block.type;
+            const oreData = ORES[oreKey];
+            
+            const baseWeight = 0.01 + Math.random() * 4.99;
+            const weight = parseFloat((baseWeight * (1 + (getTotalLuck() * 0.05))).toFixed(2));
+
+            const newItem = {
+                id: Date.now() + Math.random(),
+                oreKey: oreKey,
+                weight: weight,
+                isShiny: block.isShiny,
+                reserved: false
+            };
+
+            trackIndex(oreKey, block.isShiny, true);
+
+            if (RARITIES[oreData.rarity].splitVault) {
+                player.vault.push(newItem);
+                addLog(`MINED ULTRA RARE/VAULT BLOCK: ${oreData.name} [${RARITIES[oreData.rarity].name}]!`, 'info');
+            } else {
+                player.inventory.push(newItem);
+                if (RARITIES[oreData.rarity].rank >= 4) {
+                    addLog(`Mined ${oreData.name} (${RARITIES[oreData.rarity].name}) - ${weight}kg`, 'action');
+                }
+            }
+
+            let xpGained = oreData.hp || 2;
+            const mLevel = player.unlockedNodes['mastery'] || 0;
+            if (mLevel > 0) {
+                const multipliers = [0, 0.5, 1.0, 2.0];
+                xpGained = Math.floor(xpGained * (1 + multipliers[mLevel]));
+            }
+            player.xp += xpGained;
+
+            if (player.xp >= player.xpNext) {
+                player.xp -= player.xpNext;
+                player.level++; player.sp++;
+                player.xpNext = Math.floor(player.xpNext * 1.5);
+                addLog(`LEVELED UP! Reached Level ${player.level}. Gained 1 Skill Point!`, 'info');
+            }
+
+            block.type = 'air'; block.solid = false;
+            player.x = x; player.y = y;
+            revealSurrounding(player.x, player.y);
+        }
+    }
+
+    window.addEventListener('keydown', e => {
+        const key = e.key.toLowerCase();
+        let dx = 0, dy = 0;
+        if (key === 'a' || key === 'arrowleft') dx = -1;
+        if (key === 'd' || key === 'arrowright') dx = 1;
+        if (key === 'w' || key === 'arrowup') dy = -1;
+        if (key === 's' || key === 'arrowdown') dy = 1;
+
+        if (dx !== 0 || dy !== 0) {
+            player.dirX = dx; player.dirY = dy;
+            const targetX = player.x + dx, targetY = player.y + dy;
+            const block = getBlock(targetX, targetY);
+
+            if (block.revealed && (!block.solid || block.type === 'air' || block.type === 'sky')) {
+                player.x = targetX; player.y = Math.max(0, targetY);
+                revealSurrounding(player.x, player.y);
+            } else {
+                executeMineSingle(targetX, targetY);
+            }
+        }
+        if (key === ' ') executeMineSingle(player.x + player.dirX, player.y + player.dirY);
+        updateUI();
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        const offsetX = canvas.width / 2 - (player.x + 0.5) * TILE_SIZE;
+        const offsetY = canvas.height / 2 - (player.y + 0.5) * TILE_SIZE;
+
+        const worldX = Math.floor((mx - offsetX) / TILE_SIZE);
+        const worldY = Math.floor((my - offsetY) / TILE_SIZE);
+
+        const block = getBlock(worldX, worldY);
+        if (block && block.revealed && block.solid && ORES[block.type]) {
+            const ore = ORES[block.type];
+            const rarity = RARITIES[ore.rarity];
+            tooltip.style.display = 'block';
+            tooltip.style.left = `${e.clientX + 12}px`;
+            tooltip.style.top = `${e.clientY + 12}px`;
+            tooltip.style.borderColor = rarity.color;
+
+            tooltip.innerHTML = `
+                <div class="tt-title">
+                    <span>${ore.name} ${block.isShiny ? '✨' : ''}</span>
+                    <span class="tt-badge" style="background:${rarity.color}">${rarity.name}</span>
+                </div>
+                <div>HP: <b>${block.hp}/${block.maxHp}</b></div>
+                <div>Cost/kg: <b>$${ore.costPerKg.toFixed(2)}</b></div>
+                <div style="font-size:0.8em; color:#94a3b8; margin-top:4px;">${ore.desc}</div>
+            `;
+        } else if (block && block.isChest) {
+            tooltip.style.display = 'block';
+            tooltip.style.left = `${e.clientX + 12}px`;
+            tooltip.style.top = `${e.clientY + 12}px`;
+            tooltip.style.borderColor = '#f59e0b';
+            tooltip.innerHTML = `
+                <div class="tt-title">
+                    <span style="color:#f59e0b">Mineshaft Chest</span>
+                    <span class="tt-badge" style="background:#f59e0b">LOOT</span>
+                </div>
+                <div>HP: <b>${block.hp}/${block.maxHp}</b></div>
+                <div style="font-size:0.85em; color:#cbd5e1;">Mine to break open and claim multiple items!</div>
+            `;
+        } else {
+            tooltip.style.display = 'none';
+        }
+    });
+
+    canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
+    function drawBlockCracks(x, y, damageRatio) {
+        if (damageRatio <= 0) return;
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + 6, y + 6); ctx.lineTo(x + 16, y + 14); ctx.lineTo(x + 24, y + 8);
+        if (damageRatio > 0.35) {
+            ctx.moveTo(x + 16, y + 14); ctx.lineTo(x + 14, y + 26);
+            ctx.moveTo(x + 24, y + 8); ctx.lineTo(x + 28, y + 22);
+        }
+        if (damageRatio > 0.7) {
+            ctx.moveTo(x + 6, y + 20); ctx.lineTo(x + 14, y + 26);
+            ctx.moveTo(x + 20, y + 4); ctx.lineTo(x + 16, y + 14);
+        }
+        ctx.stroke();
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const offsetX = canvas.width / 2 - (player.x + 0.5) * TILE_SIZE;
+        const offsetY = canvas.height / 2 - (player.y + 0.5) * TILE_SIZE;
+
+        const startTileX = Math.floor(-offsetX / TILE_SIZE) - 2;
+        const endTileX = startTileX + VIEW_WIDTH + 4;
+        const startTileY = Math.floor(-offsetY / TILE_SIZE) - 2;
+        const endTileY = startTileY + VIEW_HEIGHT + 4;
+
+        for (let y = startTileY; y <= endTileY; y++) {
+            for (let x = startTileX; x <= endTileX; x++) {
+                const screenX = x * TILE_SIZE + offsetX;
+                const screenY = y * TILE_SIZE + offsetY;
+                const block = getBlock(x, y);
+
+                if (!block.revealed && y >= 1) {
+                    ctx.fillStyle = settings.theme === 'light' ? '#94a3b8' : '#030303';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                } else if (block.type === 'air') {
+                    ctx.fillStyle = y > 150 ? '#0f172a' : (y > 50 ? '#1e293b' : '#271a0c');
+                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                } else if (block.isChest) {
+                    ctx.fillStyle = '#b45309';
+                    ctx.fillRect(screenX, screenY, TILE_SIZE - 1, TILE_SIZE - 1);
+                    ctx.fillStyle = '#facc15';
+                    ctx.fillRect(screenX + 4, screenY + 10, TILE_SIZE - 9, 4);
+                    if (block.hp < block.maxHp) {
+                        drawBlockCracks(screenX, screenY, 1 - (block.hp / block.maxHp));
+                    }
+                } else if (ORES[block.type]) {
+                    const ore = ORES[block.type];
+                    const img = getOreImage(block.type);
+
+                    if (img) {
+                        ctx.drawImage(img, screenX, screenY, TILE_SIZE - 1, TILE_SIZE - 1);
+                    } else {
+                        ctx.fillStyle = ore.color;
+                        ctx.fillRect(screenX, screenY, TILE_SIZE - 1, TILE_SIZE - 1);
+                    }
+
+                    if (block.hp < block.maxHp) {
+                        drawBlockCracks(screenX, screenY, 1 - (block.hp / block.maxHp));
+                    }
+
+                    const rarRank = Object.keys(RARITIES).indexOf(ore.rarity);
+                    if (block.isShiny || rarRank >= 4) {
+                        ctx.strokeStyle = block.isShiny ? `hsl(${(Date.now() / 10) % 360}, 100%, 50%)` : RARITIES[ore.rarity].color;
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(screenX + 1, screenY + 1, TILE_SIZE - 3, TILE_SIZE - 3);
+                    }
+                }
+            }
+        }
+
+        const pScreenX = player.x * TILE_SIZE + offsetX;
+        const pScreenY = player.y * TILE_SIZE + offsetY;
+        ctx.fillStyle = settings.secondaryColor;
+        ctx.fillRect(pScreenX + 2, pScreenY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+
+        requestAnimationFrame(render);
+    }
+
+    setInterval(() => {
+        if (!player.hasMuseum || player.vault.length === 0) return;
+
+        let topItem = player.vault.reduce((max, item) => {
+            const valA = item.weight * ORES[item.oreKey].costPerKg * (item.isShiny ? 2048 : 1);
+            const valB = max.weight * ORES[max.oreKey].costPerKg * (max.isShiny ? 2048 : 1);
+            return valA > valB ? item : max;
+        }, player.vault[0]);
+
+        if (topItem) {
+            const ore = ORES[topItem.oreKey];
+            const baseVal = topItem.weight * ore.costPerKg * (topItem.isShiny ? 2048 : 1);
+            const hypeRate = baseVal * 0.0005 * RARITIES[ore.rarity].valMult;
+            player.coins += hypeRate;
+            updateUI();
+        }
+    }, 1000);
+
+    function renderIndexTab() {
+        const grid = document.getElementById('index-grid');
+        grid.innerHTML = Object.keys(ORES).filter(k => k !== 'sky').map(key => {
+            const ore = ORES[key];
+            const rarity = RARITIES[ore.rarity];
+            const data = player.index[key] || { seenNormal: false, seenShiny: false, minedNormal: 0, minedShiny: 0 };
+            const isDiscovered = data.seenNormal || data.seenShiny || data.minedNormal > 0 || data.minedShiny > 0;
+
+            return `
+                <div class="index-item ${isDiscovered ? '' : 'unseen'}" style="border-left-color:${rarity.color}">
+                    <div class="index-info">
+                        <div class="index-title">
+                            <span style="color:${isDiscovered ? rarity.color : 'inherit'}">${isDiscovered ? ore.name : '???'}</span>
+                            ${data.seenShiny || data.minedShiny > 0 ? '✨' : ''}
+                        </div>
+                        <div class="index-counts">
+                            ${isDiscovered ? `Mined: ${data.minedNormal} | Shiny Mined: ${data.minedShiny}` : 'Not yet discovered'}
+                        </div>
+                    </div>
+                    <span class="tt-badge" style="background:${isDiscovered ? rarity.color : '#475569'}">${rarity.name}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderSkillTree() {
+        const container = document.getElementById('tree-container');
+        const svg = document.getElementById('tree-connections');
+        svg.innerHTML = '';
+        container.querySelectorAll('.node').forEach(n => n.remove());
+
+        SKILL_TREE_NODES.forEach(node => {
+            node.req.forEach(reqId => {
+                const parent = SKILL_TREE_NODES.find(n => n.id === reqId);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', `${parent.x}%`);
+                line.setAttribute('y1', `${parent.y}%`);
+                line.setAttribute('x2', `${node.x}%`);
+                line.setAttribute('y2', `${node.y}%`);
+                line.setAttribute('stroke', (player.unlockedNodes[node.id] || 0) > 0 ? settings.color : '#475569');
+                line.setAttribute('stroke-width', '3');
+                svg.appendChild(line);
+            });
+        });
+
+        SKILL_TREE_NODES.forEach(node => {
+            const el = document.createElement('div');
+            el.className = 'node';
+            el.style.left = `${node.x}%`;
+            el.style.top = `${node.y}%`;
+
+            const currentLevel = player.unlockedNodes[node.id] || 0;
+            const isMaxed = currentLevel >= node.maxLevel;
+            const isUnlocked = currentLevel > 0;
+            const availableToBuy = isNodeUnlocked(node.id, player.unlockedNodes);
+
+            el.innerText = `${node.label}\n(${currentLevel}/${node.maxLevel})`;
+
+            if (isMaxed) el.classList.add('maxed');
+            else if (isUnlocked) el.classList.add('unlocked');
+            else if (availableToBuy) el.classList.add('available');
+
+            el.onmouseenter = (e) => {
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${e.clientX + 12}px`;
+                tooltip.style.top = `${e.clientY + 12}px`;
+                tooltip.style.borderColor = settings.color;
+
+                const costText = isMaxed ? 'MAXED' : `${node.costPerLevel[currentLevel]} SP`;
+                const boostText = node.bonusPerLevel ? (isMaxed ? `Bonus: +${node.bonusPerLevel[node.maxLevel - 1]}` : `Next: +${node.bonusPerLevel[currentLevel]}`) : '';
+
+                tooltip.innerHTML = `
+                    <div class="tt-title">
+                        <span>${node.label}</span>
+                        <span class="tt-badge" style="background:${settings.color}">Lvl ${currentLevel}/${node.maxLevel}</span>
+                    </div>
+                    <div>Cost: <b>${costText}</b></div>
+                    ${boostText ? `<div>Stat Increase: <b>${boostText}</b></div>` : ''}
+                    <div style="font-size:0.8em; color:#94a3b8; margin-top:4px;">${node.desc}</div>
+                `;
+            };
+
+            el.onmousemove = (e) => {
+                tooltip.style.left = `${e.clientX + 12}px`;
+                tooltip.style.top = `${e.clientY + 12}px`;
+            };
+
+            el.onmouseleave = () => { tooltip.style.display = 'none'; };
+
+            el.onclick = () => {
+                if (isMaxed) return;
+                const cost = node.costPerLevel[currentLevel];
+                if (availableToBuy && player.sp >= cost) {
+                    player.sp -= cost;
+                    player.unlockedNodes[node.id] = currentLevel + 1;
+                    
+                    if (node.id === 'nuke_skill') player.skills.nuke += node.bonusPerLevel[currentLevel];
+                    if (node.id === 'tp_skill') player.skills.tp += node.bonusPerLevel[currentLevel];
+
+                    addLog(`Upgraded skill node: ${node.label} to Level ${currentLevel + 1}!`, 'action');
+                    renderSkillTree();
+                    updateUI();
+                } else if (!availableToBuy) {
+                    addLog(`Cannot upgrade node: Prerequisites incomplete!`, 'error');
+                } else if (player.sp < cost) {
+                    addLog(`Not enough Skill Points! Required: ${cost}`, 'error');
+                }
+            };
+            container.appendChild(el);
+        });
+    }
+
+    function updateUI() {
+        document.getElementById('val-coins').innerText = `$${player.coins.toFixed(2)}`;
+        document.getElementById('val-depth').innerText = `${player.y}m`;
+        document.getElementById('val-level').innerText = `Lvl ${player.level} (${player.xp}/${player.xpNext})`;
+        document.getElementById('val-sp').innerText = player.sp;
+        document.getElementById('tree-sp-display').innerText = `SP: ${player.sp}`;
+        posDisplay.innerText = `X: ${player.x}, Y: ${player.y}`;
+
+        document.getElementById('val-cap').innerText = `${player.inventory.length}/${getTotalCapacity()}`;
+
+        const invSortType = document.getElementById('inv-sort').value;
+        const sortedInventory = sortItemList(player.inventory, invSortType);
+
+        const invListEl = document.getElementById('inventory-list');
+        invListEl.innerHTML = sortedInventory.map(item => {
+            const idx = player.inventory.findIndex(i => i.id === item.id);
+            const ore = ORES[item.oreKey];
+            const rarity = RARITIES[ore.rarity];
+            const val = item.weight * ore.costPerKg * (item.isShiny ? 2048 : 1);
+            const img = getOreImage(item.oreKey);
+
+            return `
+                <div class="inv-item ${item.isShiny ? 'shiny-item' : ''}" style="border-color:${rarity.color}">
+                    <div class="inv-left">
+                        ${img ? `<img src="${img.src}" class="inv-img">` : `<div class="inv-placeholder" style="background:${ore.color}">${ore.name[0]}</div>`}
+                        <div>
+                            <div style="color:${rarity.color}; font-weight:bold">${ore.name} ${item.isShiny ? '✨' : ''}</div>
+                            <div style="font-size:0.75em; opacity:0.8">${item.weight}kg | $${val.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div class="inv-controls">
+                        <button class="reserve-btn" onclick="toggleReserve(${idx})">${item.reserved ? '🔒' : '🔓'}</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('desc-power').innerText = `Power: ${getTotalPower()} ➔ ${getTotalPower() + 1}`;
+        document.getElementById('btn-up-power').innerText = `$${costs.power}`;
+        document.getElementById('btn-up-power').disabled = player.coins < costs.power;
+
+        document.getElementById('desc-cap').innerText = `Capacity: ${getTotalCapacity()} ➔ ${getTotalCapacity() + 10}`;
+        document.getElementById('btn-up-cap').innerText = `$${costs.cap}`;
+        document.getElementById('btn-up-cap').disabled = player.coins < costs.cap;
+
+        document.getElementById('desc-luck').innerText = `Luck: ${getTotalLuck()} ➔ ${getTotalLuck() + 1}`;
+        document.getElementById('btn-up-luck').innerText = `$${costs.luck}`;
+        document.getElementById('btn-up-luck').disabled = player.coins < costs.luck;
+
+        document.getElementById('cnt-tp').innerText = player.skills.tp;
+        document.getElementById('cnt-nuke').innerText = player.skills.nuke;
+
+        if (player.hasMuseum) {
+            document.getElementById('btn-craft-museum').disabled = true;
+            document.getElementById('btn-craft-museum').innerText = 'Crafted';
+            document.getElementById('museum-status').innerText = 'Museum Active - Displaying Most Expensive Vault Block';
+            
+            if (player.vault.length > 0) {
+                let topItem = player.vault.reduce((max, item) => {
+                    const valA = item.weight * ORES[item.oreKey].costPerKg * (item.isShiny ? 2048 : 1);
+                    const valB = max.weight * ORES[max.oreKey].costPerKg * (max.isShiny ? 2048 : 1);
+                    return valA > valB ? item : max;
+                }, player.vault[0]);
+
+                const ore = ORES[topItem.oreKey];
+                const baseVal = topItem.weight * ore.costPerKg * (topItem.isShiny ? 2048 : 1);
+                const hypeRate = baseVal * 0.0005 * RARITIES[ore.rarity].valMult;
+
+                document.getElementById('museum-display-card').style.display = 'flex';
+                document.getElementById('museum-item-name').innerText = `${ore.name} ${topItem.isShiny ? '✨' : ''}`;
+                document.getElementById('museum-item-desc').innerText = `Weight: ${topItem.weight}kg | Tier: ${RARITIES[ore.rarity].name}`;
+                document.getElementById('museum-hype-rate').innerText = `Hype Revenue: +$${hypeRate.toFixed(2)}/sec`;
+            }
+        }
+
+        const vaultSortType = document.getElementById('vault-sort').value;
+        const sortedVault = sortItemList(player.vault, vaultSortType);
+
+        const vaultEl = document.getElementById('vault-list');
+        vaultEl.innerHTML = sortedVault.map(item => {
+            const ore = ORES[item.oreKey];
+            const rarity = RARITIES[ore.rarity];
+            return `
+                <div class="inv-item" style="border-color:${rarity.color}">
+                    <span style="color:${rarity.color}; font-weight:bold">${ore.name} (${rarity.name})</span>
+                    <span>${item.weight} kg</span>
+                </div>
+            `;
+        }).join('');
+
+        renderIndexTab();
+    }
+
+    window.toggleReserve = (idx) => {
+        if (player.inventory[idx]) {
+            player.inventory[idx].reserved = !player.inventory[idx].reserved;
+            updateUI();
+        }
+    };
+
+    document.getElementById('btn-sell-ores').onclick = () => {
+        let total = 0;
+        let count = 0;
+        player.inventory = player.inventory.filter(item => {
+            if (item.reserved) return true;
+            const ore = ORES[item.oreKey];
+            const val = item.weight * ore.costPerKg * (item.isShiny ? 2048 : 1);
+            total += val;
+            count++;
+            return false;
+        });
+        player.coins += total;
+        if (count > 0) addLog(`Sold ${count} ores for $${total.toFixed(2)}`, 'action');
+        updateUI();
+    };
+
+    document.getElementById('btn-up-power').onclick = () => {
+        if (player.coins >= costs.power) {
+            player.coins -= costs.power; player.basePower += 1;
+            addLog(`Purchased Pickaxe Power upgrade ($${costs.power})`, 'action');
+            costs.power = Math.floor(costs.power * 1.5);
+            updateUI();
+        }
+    };
+
+    document.getElementById('btn-up-cap').onclick = () => {
+        if (player.coins >= costs.cap) {
+            player.coins -= costs.cap; player.baseCapacity += 10;
+            addLog(`Purchased Backpack Capacity upgrade ($${costs.cap})`, 'action');
+            costs.cap = Math.floor(costs.cap * 1.5);
+            updateUI();
+        }
+    };
+
+    document.getElementById('btn-up-luck').onclick = () => {
+        if (player.coins >= costs.luck) {
+            player.coins -= costs.luck; player.baseLuck += 1;
+            addLog(`Purchased Mining Luck upgrade ($${costs.luck})`, 'action');
+            costs.luck = Math.floor(costs.luck * 1.5);
+            updateUI();
+        }
+    };
+
+    document.getElementById('btn-craft-museum').onclick = () => {
+        if (player.coins >= 50 && !player.hasMuseum) {
+            player.coins -= 50; player.hasMuseum = true;
+            addLog(`Crafted Museum Display Stand! Side-mode initialized.`, 'info');
+            updateUI();
+        }
+    };
+
+    document.getElementById('btn-use-tp').onclick = () => {
+        if (player.skills.tp > 0) {
+            player.skills.tp--;
+            safeSpawnPlayer(player.x, player.y + 50);
+            addLog(`Used Teleport Charge! Descended 50m.`, 'action');
+            updateUI();
+        } else {
+            addLog(`No Teleport Charges remaining! Unlock more in Skill Tree.`, 'error');
+        }
+    };
+
+    document.getElementById('btn-use-nuke').onclick = () => {
+        if (player.skills.nuke > 0) {
+            player.skills.nuke--;
+            addLog(`Detonated Bomb charge (3x3 area)!`, 'action');
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    const tx = player.x + dx, ty = player.y + dy;
+                    const key = `${tx},${ty}`;
+                    if (worldMap[key]) {
+                        worldMap[key].type = 'air';
+                        worldMap[key].solid = false;
+                    }
+                }
+            }
+            revealSurrounding(player.x, player.y);
+            updateUI();
+        } else {
+            addLog(`No Bomb Charges remaining! Unlock more in Skill Tree.`, 'error');
+        }
+    };
+
+    function applySettings() {
+        document.documentElement.style.setProperty('--base-font-size', settings.fontSize);
+        document.documentElement.style.setProperty('--primary-color', settings.color);
+        document.documentElement.style.setProperty('--primary-border', settings.color);
+        document.documentElement.style.setProperty('--secondary-color', settings.secondaryColor);
+        document.documentElement.style.setProperty('--secondary-border', settings.secondaryColor);
+
+        const hex = settings.color.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        document.documentElement.style.setProperty('--primary-bg-alpha', `rgba(${r}, ${g}, ${b}, 0.2)`);
+
+        if (settings.theme === 'light') document.body.classList.add('light-mode');
+        else document.body.classList.remove('light-mode');
+
+        document.querySelectorAll('.primary-dot').forEach(dot => {
+            dot.classList.toggle('active', dot.getAttribute('data-color') === settings.color);
+        });
+        document.querySelectorAll('.secondary-dot').forEach(dot => {
+            dot.classList.toggle('active', dot.getAttribute('data-color') === settings.secondaryColor);
+        });
+    }
+
+    const settingsModal = document.getElementById('settings-modal');
+    const logModal = document.getElementById('log-modal');
+
+    document.getElementById('btn-open-settings').onclick = () => settingsModal.style.display = 'flex';
+    document.getElementById('btn-close-settings').onclick = () => settingsModal.style.display = 'none';
+
+    document.getElementById('btn-open-log').onclick = () => { renderLogs(); logModal.style.display = 'flex'; };
+    document.getElementById('btn-close-log').onclick = () => logModal.style.display = 'none';
+    document.getElementById('btn-clear-logs').onclick = () => { logEntries = []; renderLogs(); };
+
+    document.getElementById('setting-theme').onchange = (e) => { settings.theme = e.target.value; applySettings(); };
+    document.getElementById('setting-font-size').onchange = (e) => { settings.fontSize = e.target.value; applySettings(); };
+
+    document.querySelectorAll('.primary-dot').forEach(dot => {
+        dot.addEventListener('click', () => { settings.color = dot.getAttribute('data-color'); applySettings(); });
+    });
+    document.querySelectorAll('.secondary-dot').forEach(dot => {
+        dot.addEventListener('click', () => { settings.secondaryColor = dot.getAttribute('data-color'); applySettings(); });
+    });
+
+    window.switchTab = (tabId) => {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+        if (tabId === 'tab-tree') renderSkillTree();
+        if (tabId === 'tab-index') renderIndexTab();
+    };
+
+    document.getElementById('btn-reset-save').onclick = () => {
+        if (confirm("Reset save data?")) { localStorage.removeItem('miner_save_v5'); location.reload(); }
+    };
+
+    function saveGame() {
+        localStorage.setItem('miner_save_v5', JSON.stringify({ player, costs, settings }));
+        saveStatus.style.opacity = '1'; setTimeout(() => { saveStatus.style.opacity = '0'; }, 1000);
+    }
+
+    function loadGame() {
+        const saved = localStorage.getItem('miner_save_v5');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            player = parsed.player; costs = parsed.costs; 
+            if (parsed.settings) settings = { ...settings, ...parsed.settings };
+            if (!player.index) player.index = {};
+            if (Array.isArray(player.unlockedNodes)) {
+                const nodeObj = {};
+                player.unlockedNodes.forEach(id => nodeObj[id] = 1);
+                player.unlockedNodes = nodeObj;
+            }
+        }
+        applySettings();
+    }
+
+    setInterval(saveGame, 5000);
+    loadGame();
+    safeSpawnPlayer(player.x, player.y);
+    addLog(`Mining session initialized at depth ${player.y}m.`, 'info');
+    updateUI();
+    render();
+</script>
+</body>
+</html>
