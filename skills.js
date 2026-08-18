@@ -5,7 +5,7 @@ export const SKILL_TREE_NODES = [
     { 
         id: 'root', 
         label: 'Mining Basics', 
-        x: 50, y: 10, 
+        x: 50, y: 12, 
         req: [], 
         level: 1, 
         maxLevel: 1, 
@@ -17,7 +17,7 @@ export const SKILL_TREE_NODES = [
     { 
         id: 'pow_branch', 
         label: 'Pickaxe Power', 
-        x: 30, y: 30, 
+        x: 28, y: 32, 
         req: ['root'], 
         level: 0, 
         maxLevel: 3, 
@@ -28,7 +28,7 @@ export const SKILL_TREE_NODES = [
     { 
         id: 'luck_branch', 
         label: 'Miner\'s Luck', 
-        x: 70, y: 30, 
+        x: 72, y: 32, 
         req: ['root'], 
         level: 0, 
         maxLevel: 3, 
@@ -41,7 +41,7 @@ export const SKILL_TREE_NODES = [
     { 
         id: 'nuke_skill', 
         label: 'Nuke Charges', 
-        x: 15, y: 55, 
+        x: 14, y: 58, 
         req: ['pow_branch'], 
         level: 0, 
         maxLevel: 5, 
@@ -52,7 +52,7 @@ export const SKILL_TREE_NODES = [
     { 
         id: 'heavy_strike', 
         label: 'Heavy Strike', 
-        x: 40, y: 55, 
+        x: 38, y: 58, 
         req: ['pow_branch'], 
         level: 0, 
         maxLevel: 2, 
@@ -65,7 +65,7 @@ export const SKILL_TREE_NODES = [
     { 
         id: 'vault_expansion', 
         label: 'Vault Pocket', 
-        x: 60, y: 55, 
+        x: 62, y: 58, 
         req: ['luck_branch'], 
         level: 0, 
         maxLevel: 2, 
@@ -73,10 +73,21 @@ export const SKILL_TREE_NODES = [
         bonusPerLevel: [10, 25], // Capacity boost
         desc: 'Expands inventory capacity.' 
     },
+    {
+        id: 'straf',
+        label: 'Space to Strafe',
+        x: 50, y: 58,
+        req: ['luck_branch'],
+        level: 0,
+        maxLevel: 1,
+        costPerLevel: [4],
+        bonusPerLevel: [1],
+        desc: 'Press Space with a movement direction to dash through empty space until you hit another ore.'
+    },
     { 
         id: 'tp_skill', 
         label: 'Teleport Charges', 
-        x: 85, y: 55, 
+        x: 86, y: 58, 
         req: ['luck_branch'], 
         level: 0, 
         maxLevel: 5, 
@@ -84,17 +95,78 @@ export const SKILL_TREE_NODES = [
         bonusPerLevel: [1, 1, 1, 1, 1], // Gives 1 Teleport charge per level
         desc: 'Grants consumable teleport charges.' 
     },
+
+    {
+        id: 'fortune',
+        label: 'Fortune',
+        x: 72, y: 82,
+        req: ['luck_branch'],
+        level: 0,
+        maxLevel: 3,
+        costPerLevel: [2, 4, 6],
+        bonusPerLevel: [0.05, 0.1, 0.2],
+        desc: 'Improves ore sale value from everything you bring back.'
+    },
     
     { 
         id: 'mastery', 
         label: 'Deep Ore Master', 
-        x: 50, y: 80, 
+        x: 50, y: 84, 
         req: ['heavy_strike', 'vault_expansion'], // Requires BOTH branches
         level: 0, 
         maxLevel: 3, 
         costPerLevel: [5, 8, 12], 
         bonusPerLevel: [0.5, 1.0, 2.0], // XP Multiplier bonus (+50%, +100%, +200%)
         desc: 'Massively boosts XP gained from all mining.' 
+    },
+
+    // New skills for deeper mining
+    {
+        id: 'deep_dive',
+        label: 'Deep Dive',
+        x: 30, y: 68,
+        req: ['pow_branch'],
+        level: 0,
+        maxLevel: 2,
+        costPerLevel: [6, 10],
+        bonusPerLevel: [0, 0],
+        desc: 'Unlocks ability to mine deeper. Reaches y=500.'
+    },
+
+    {
+        id: 'crust_breach',
+        label: 'Crust Breach',
+        x: 70, y: 68,
+        req: ['luck_branch'],
+        level: 0,
+        maxLevel: 2,
+        costPerLevel: [8, 12],
+        bonusPerLevel: [0, 0],
+        desc: 'Breaks through to the deep crust. Reaches y=1000.'
+    },
+
+    {
+        id: 'reinforced_tools',
+        label: 'Reinforced Tools',
+        x: 20, y: 90,
+        req: ['deep_dive'],
+        level: 0,
+        maxLevel: 1,
+        costPerLevel: [15],
+        bonusPerLevel: [0],
+        desc: 'Tools can break through bedrock with special items.'
+    },
+
+    {
+        id: 'deep_fortune',
+        label: 'Deep Fortune',
+        x: 80, y: 90,
+        req: ['crust_breach'],
+        level: 0,
+        maxLevel: 2,
+        costPerLevel: [12, 16],
+        bonusPerLevel: [0.15, 0.3],
+        desc: 'Boosts deep ore value by up to 30%.'
     }
 ];
 
