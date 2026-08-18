@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Average Mining Game</title>
+    <title>2D Mining Simulator</title>
     <style>
         :root {
             --primary-color: #10b981;
@@ -168,7 +168,6 @@
         .chest-content { background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 8px; width: 340px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
         .chest-loot-list { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
 
-        /* Floating action buttons at bottom-left */
         .floating-btn-group {
             position: absolute; bottom: 16px; left: 16px; display: flex; gap: 10px; z-index: 500;
         }
@@ -346,13 +345,11 @@
 
             <div id="tab-news" class="tab-content">
                 <div class="card">
-                    <div class="card-title">AMG News</div>
+                    <div class="card-title">Average Mining Game New</div>
                     <div class="news-article">
                         <div class="news-date">SYSTEM UPDATE • TODAY</div>
-                        <div class="news-header">0.1 Beta Release</div>
-                        <div class="news-body">Initial release. Hello World!</div>
-                        <div class="news-body">Buffs:</div>
-                        <div class="news-body">Chests spawn more and have SHINY appearances to help with progression!</div>
+                        <div class="news-header">Release B0.1</div>
+                        <div class="news-body">Hello World!</div>
                     </div>
                 </div>
             </div>
@@ -450,6 +447,11 @@
 
 <script type="module">
     import { SKILL_TREE_NODES, isNodeUnlocked } from './skills.js';
+
+    // SHINY MULTIPLIER CONSTANT: 10,000x
+    const SHINY_MULTIPLIER = 10000;
+    // BASE SHINY CHANCE: Twice as rare (1 in 4096)
+    const BASE_SHINY_CHANCE = 1 / 4096;
 
     const RARITIES = {
         c:   { name: 'Common', color: '#808080', valMult: 1, splitVault: false, rank: 1, weight: 6000 },
@@ -578,7 +580,8 @@
 
     function getItemValue(item) {
         const ore = ORES[item.oreKey];
-        return item.weight * ore.costPerKg * (item.isShiny ? 2048 : 1);
+        // Shinies use 10,000x multiplier
+        return item.weight * ore.costPerKg * (item.isShiny ? SHINY_MULTIPLIER : 1);
     }
 
     function sortItemList(list, sortType) {
@@ -669,17 +672,19 @@
         const key = `${x},${y}`;
         if (!worldMap[key] || !worldMap[key].revealed) {
             const caveVal = pseudoNoise(x * 0.15, y * 0.15);
-            const isChest = caveVal > 0.88 && y > 5;
             
-            // Increased Air Pockets: Threshold lowered from 0.72 to 0.58 (~30% air pocket density)
+            // NERFED CHEST FREQUENCY: Threshold raised to 0.985 (makes chests 8x rarer)
+            const isChest = caveVal > 0.985 && y > 10;
+            
             let blockType = isChest ? 'chest' : ((caveVal > 0.58 && y > 3) ? 'air' : rollOreByDepth(y));
 
-            const isShiny = Math.random() < (1 / 2048);
+            // SHINY GENERATION: Strict base rate (1 in 4096), NOT affected by luck
+            const isShiny = Math.random() < BASE_SHINY_CHANCE;
 
             worldMap[key] = {
                 type: blockType,
-                hp: isChest ? 20 : (ORES[blockType] ? ORES[blockType].hp : 10),
-                maxHp: isChest ? 20 : (ORES[blockType] ? ORES[blockType].hp : 10),
+                hp: isChest ? 35 : (ORES[blockType] ? ORES[blockType].hp : 10),
+                maxHp: isChest ? 35 : (ORES[blockType] ? ORES[blockType].hp : 10),
                 solid: blockType !== 'air',
                 revealed: true,
                 isShiny: isShiny,
@@ -711,13 +716,15 @@
 
     function openChestLoot(x, y) {
         addLog(`Opened mineshaft loot chest at ${x}, ${y}!`, 'info');
-        const chestLootCount = 2 + Math.floor(Math.random() * 3);
+        // NERFED CHEST LOOT: Yields only 1-2 items
+        const chestLootCount = 1 + Math.floor(Math.random() * 2);
         pendingChestLoot = [];
 
         for (let i = 0; i < chestLootCount; i++) {
             const oreKey = rollOreByDepth(y, true);
-            const isShiny = Math.random() < 0.1;
-            const baseWeight = 0.5 + Math.random() * 4.5;
+            // CHEST SHINY CHANCE NERFED & FIXED: Uses exact same strict rate, NOT affected by luck
+            const isShiny = Math.random() < BASE_SHINY_CHANCE;
+            const baseWeight = 0.5 + Math.random() * 2.5; // Slightly reduced weight
             const weight = parseFloat((baseWeight * (1 + (getTotalLuck() * 0.05))).toFixed(2));
 
             pendingChestLoot.push({
@@ -791,6 +798,7 @@
             const oreKey = block.type;
             const oreData = ORES[oreKey];
             
+            // Weight is modified by luck, but shiny status was determined strictly on world gen (immune to luck)
             const baseWeight = 0.01 + Math.random() * 4.99;
             const weight = parseFloat((baseWeight * (1 + (getTotalLuck() * 0.05))).toFixed(2));
 
@@ -809,7 +817,9 @@
                 addLog(`MINED ULTRA RARE/VAULT BLOCK: ${oreData.name} [${RARITIES[oreData.rarity].name}]!`, 'info');
             } else {
                 player.inventory.push(newItem);
-                if (RARITIES[oreData.rarity].rank >= 4) {
+                if (block.isShiny) {
+                    addLog(`✨ SHINY MINED! ${oreData.name} (10,000x Multiplier!)`, 'info');
+                } else if (RARITIES[oreData.rarity].rank >= 4) {
                     addLog(`Mined ${oreData.name} (${RARITIES[oreData.rarity].name}) - ${weight}kg`, 'action');
                 }
             }
@@ -885,7 +895,7 @@
                     <span class="tt-badge" style="background:${rarity.color}">${rarity.name}</span>
                 </div>
                 <div>HP: <b>${block.hp}/${block.maxHp}</b></div>
-                <div>Cost/kg: <b>$${ore.costPerKg.toFixed(2)}</b></div>
+                <div>Cost/kg: <b>$${(ore.costPerKg * (block.isShiny ? SHINY_MULTIPLIER : 1)).toFixed(2)}</b></div>
                 <div style="font-size:0.8em; color:#94a3b8; margin-top:4px;">${ore.desc}</div>
             `;
         } else if (block && block.isChest) {
@@ -896,10 +906,10 @@
             tooltip.innerHTML = `
                 <div class="tt-title">
                     <span style="color:#f59e0b">Mineshaft Chest</span>
-                    <span class="tt-badge" style="background:#f59e0b">LOOT</span>
+                    <span class="tt-badge" style="background:#f59e0b">RARE LOOT</span>
                 </div>
                 <div>HP: <b>${block.hp}/${block.maxHp}</b></div>
-                <div style="font-size:0.85em; color:#cbd5e1;">Mine to break open and claim multiple items!</div>
+                <div style="font-size:0.85em; color:#cbd5e1;">Mine to break open and claim 1-2 rare items!</div>
             `;
         } else {
             tooltip.style.display = 'none';
@@ -993,14 +1003,14 @@
         if (!player.hasMuseum || player.vault.length === 0) return;
 
         let topItem = player.vault.reduce((max, item) => {
-            const valA = item.weight * ORES[item.oreKey].costPerKg * (item.isShiny ? 2048 : 1);
-            const valB = max.weight * ORES[max.oreKey].costPerKg * (max.isShiny ? 2048 : 1);
+            const valA = item.weight * ORES[item.oreKey].costPerKg * (item.isShiny ? SHINY_MULTIPLIER : 1);
+            const valB = max.weight * ORES[max.oreKey].costPerKg * (max.isShiny ? SHINY_MULTIPLIER : 1);
             return valA > valB ? item : max;
         }, player.vault[0]);
 
         if (topItem) {
             const ore = ORES[topItem.oreKey];
-            const baseVal = topItem.weight * ore.costPerKg * (topItem.isShiny ? 2048 : 1);
+            const baseVal = topItem.weight * ore.costPerKg * (topItem.isShiny ? SHINY_MULTIPLIER : 1);
             const hypeRate = baseVal * 0.0005 * RARITIES[ore.rarity].valMult;
             player.coins += hypeRate;
             updateUI();
@@ -1137,7 +1147,7 @@
             const idx = player.inventory.findIndex(i => i.id === item.id);
             const ore = ORES[item.oreKey];
             const rarity = RARITIES[ore.rarity];
-            const val = item.weight * ore.costPerKg * (item.isShiny ? 2048 : 1);
+            const val = item.weight * ore.costPerKg * (item.isShiny ? SHINY_MULTIPLIER : 1);
             const img = getOreImage(item.oreKey);
 
             return `
@@ -1178,13 +1188,13 @@
             
             if (player.vault.length > 0) {
                 let topItem = player.vault.reduce((max, item) => {
-                    const valA = item.weight * ORES[item.oreKey].costPerKg * (item.isShiny ? 2048 : 1);
-                    const valB = max.weight * ORES[max.oreKey].costPerKg * (max.isShiny ? 2048 : 1);
+                    const valA = item.weight * ORES[item.oreKey].costPerKg * (item.isShiny ? SHINY_MULTIPLIER : 1);
+                    const valB = max.weight * ORES[max.oreKey].costPerKg * (max.isShiny ? SHINY_MULTIPLIER : 1);
                     return valA > valB ? item : max;
                 }, player.vault[0]);
 
                 const ore = ORES[topItem.oreKey];
-                const baseVal = topItem.weight * ore.costPerKg * (topItem.isShiny ? 2048 : 1);
+                const baseVal = topItem.weight * ore.costPerKg * (topItem.isShiny ? SHINY_MULTIPLIER : 1);
                 const hypeRate = baseVal * 0.0005 * RARITIES[ore.rarity].valMult;
 
                 document.getElementById('museum-display-card').style.display = 'flex';
@@ -1203,7 +1213,7 @@
             const rarity = RARITIES[ore.rarity];
             return `
                 <div class="inv-item" style="border-color:${rarity.color}">
-                    <span style="color:${rarity.color}; font-weight:bold">${ore.name} (${rarity.name})</span>
+                    <span style="color:${rarity.color}; font-weight:bold">${ore.name} (${rarity.name}) ${item.isShiny ? '✨' : ''}</span>
                     <span>${item.weight} kg</span>
                 </div>
             `;
@@ -1225,7 +1235,7 @@
         player.inventory = player.inventory.filter(item => {
             if (item.reserved) return true;
             const ore = ORES[item.oreKey];
-            const val = item.weight * ore.costPerKg * (item.isShiny ? 2048 : 1);
+            const val = item.weight * ore.costPerKg * (item.isShiny ? SHINY_MULTIPLIER : 1);
             total += val;
             count++;
             return false;
