@@ -271,7 +271,7 @@
             height: 100vh;
         }
 
-        .tabs { display: flex; background-color: var(--bg-header); border-bottom: 2px solid var(--border-color); flex-shrink: 0; }
+        .tabs { display: flex; background-color: var(--bg-header); border-bottom: 2px solid var(--border-color); flex-shrink: 0; overflow-x:auto; }
         .tab-btn { flex: 1; min-width: 50px; padding: 10px 2px; background: none; border: none; color: var(--text-muted); font-weight: bold; cursor: pointer; font-size: 0.85em; text-align: center; }
         .tab-btn.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); background-color: var(--bg-sidebar); }
         
@@ -384,6 +384,79 @@
 
         details summary { cursor: pointer; font-weight: bold; color: var(--primary-color); margin-bottom: 6px; outline: none; }
         details summary:hover { color: var(--secondary-color); }
+
+        /* --- Feature additions: achievements, tutorial, audio, real skill tree --- */
+        .tree-viewport {
+            width: 100%;
+            height: 430px;
+            overflow: auto;
+            background: var(--bg-main);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        #tree-container {
+            width: 760px;
+            min-width: 760px;
+            height: 760px;
+            min-height: 760px;
+            background:
+                radial-gradient(circle at 50% 12%, rgba(59,130,246,.08), transparent 28%),
+                linear-gradient(180deg, rgba(16,185,129,.03), transparent 35%),
+                var(--bg-main);
+            border: 0;
+            position: relative;
+            overflow: visible;
+        }
+        #tree-connections { pointer-events:none; }
+        .tree-node-el {
+            transition: transform .15s, filter .15s, box-shadow .15s;
+        }
+        .tree-node-el:hover { transform: translate(-50%,-50%) scale(1.05); filter: brightness(1.12); }
+        .tree-node-el.locked { filter: grayscale(.65); opacity:.72; }
+        .tree-node-el.available { box-shadow: 0 0 12px rgba(59,130,246,.35); }
+        .tree-node-el.purchased { box-shadow: 0 0 14px rgba(16,185,129,.35); }
+        .tree-node-label { font-size: 11px; line-height:1.05; font-weight:800; }
+        .tree-node-level { font-size:10px; margin-top:3px; opacity:.9; }
+        .tree-node-cost { font-size:9px; color:#f59e0b; margin-top:2px; }
+        .tree-legend { display:flex; gap:8px; flex-wrap:wrap; margin-top:7px; font-size:.72em; color:var(--text-muted); }
+        .tree-legend span { display:inline-flex; align-items:center; gap:4px; }
+        .tree-dot { width:9px; height:9px; border-radius:50%; border:1px solid currentColor; display:inline-block; }
+        .achievement-grid { display:grid; grid-template-columns:1fr; gap:7px; max-height:480px; overflow:auto; }
+        .achievement-card {
+            background:var(--bg-box); border:1px solid var(--border-color); border-radius:7px;
+            padding:9px; display:flex; gap:9px; align-items:flex-start;
+        }
+        .achievement-card.unlocked { border-color:#f59e0b; box-shadow:0 0 10px rgba(245,158,11,.12); }
+        .achievement-icon { font-size:23px; width:30px; text-align:center; }
+        .achievement-name { font-weight:800; color:var(--text-title); }
+        .achievement-desc { color:var(--text-muted); font-size:.78em; margin-top:2px; line-height:1.25; }
+        .achievement-progress { margin-top:5px; height:5px; background:var(--bg-item); border-radius:3px; overflow:hidden; }
+        .achievement-progress > div { height:100%; background:#f59e0b; transition:width .2s; }
+        .achievement-status { font-size:.7em; margin-top:3px; color:#f59e0b; font-weight:700; }
+        .tutorial-backdrop {
+            display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:5000;
+            align-items:center; justify-content:center; padding:16px;
+        }
+        .tutorial-backdrop.active { display:flex; }
+        .tutorial-card {
+            width:min(560px, 94vw); background:var(--bg-card); border:2px solid var(--primary-color);
+            border-radius:12px; padding:20px; box-shadow:0 12px 45px rgba(0,0,0,.6);
+        }
+        .tutorial-step { display:none; }
+        .tutorial-step.active { display:block; }
+        .tutorial-step h2 { color:var(--primary-color); margin-bottom:8px; }
+        .tutorial-step p { color:var(--text-main); line-height:1.5; }
+        .tutorial-actions { display:flex; gap:8px; justify-content:space-between; margin-top:16px; }
+        .settings-row { display:flex; flex-direction:column; gap:5px; }
+        .settings-row.inline { flex-direction:row; align-items:center; justify-content:space-between; }
+        .settings-row input[type="range"], .settings-row select { width:100%; }
+        .settings-file { width:100%; padding:7px; border:1px dashed var(--border-color); border-radius:6px; background:var(--bg-box); color:var(--text-main); }
+        .music-name { color:var(--text-muted); font-size:.78em; word-break:break-word; }
+        .toast-feature { position:fixed; top:18px; left:50%; transform:translateX(-50%) translateY(-10px);
+            opacity:0; pointer-events:none; z-index:6000; background:var(--bg-card); border:1px solid #f59e0b;
+            border-radius:8px; padding:10px 14px; box-shadow:0 5px 22px rgba(0,0,0,.5); transition:.25s; }
+        .toast-feature.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
     </style>
 </head>
 <body>
@@ -427,6 +500,7 @@
             <button class="tab-btn" data-tab="tab-shop" onclick="switchTab('tab-shop')">Shop</button>
             <button class="tab-btn" data-tab="tab-craft" onclick="switchTab('tab-craft')">Craft</button>
             <button class="tab-btn" data-tab="tab-index" onclick="switchTab('tab-index')">Index</button>
+            <button class="tab-btn" data-tab="tab-achievements" onclick="switchTab('tab-achievements')">Achieve</button>
             <button class="tab-btn" data-tab="tab-museum" onclick="switchTab('tab-museum')">Museum</button>
             <button class="tab-btn" data-tab="tab-news" onclick="switchTab('tab-news')">News</button>
         </div>
@@ -477,8 +551,16 @@
                 <div class="card">
                     <details open>
                         <summary style="font-size: 1em; font-weight: bold; color: var(--primary-color);">Skill Tree</summary>
-                        <div id="tree-container" style="margin-top: 6px;">
-                            <svg id="tree-connections"></svg>
+                        <div class="tree-viewport" style="margin-top:6px;">
+                            <div id="tree-container">
+                                <svg id="tree-connections" viewBox="0 0 760 760" preserveAspectRatio="none"></svg>
+                            </div>
+                        </div>
+                        <div class="tree-legend">
+                            <span><i class="tree-dot" style="color:#10b981"></i> Purchased</span>
+                            <span><i class="tree-dot" style="color:#3b82f6"></i> Available</span>
+                            <span><i class="tree-dot" style="color:#475569"></i> Locked</span>
+                            <span>Click a node to spend its listed SP cost.</span>
                         </div>
                     </details>
                 </div>
@@ -555,6 +637,16 @@
                 </div>
             </div>
 
+            <div id="tab-achievements" class="tab-content">
+                <div class="card">
+                    <div class="card-title">
+                        <span>🏆 Achievements</span>
+                        <span id="achievement-summary" style="font-size:.8em;color:#f59e0b">0/0</span>
+                    </div>
+                    <div id="achievement-grid" class="achievement-grid"></div>
+                </div>
+            </div>
+
             <div id="tab-museum" class="tab-content">
                 <div class="card">
                     <div class="card-title">Museum Exhibition</div>
@@ -577,7 +669,7 @@
                 <div class="card">
                     <div class="card-title">Average Mining Game News</div>
                     <div class="news-article">
-                        <div class="news-date">SYSTEM UPDATE • TODAY</div>
+                        <div class="news-date">SYSTEM UPDATE • 18/8/2026</div>
                         <div class="news-header">Release B0.1</div>
                         <div class="news-body">Hello World! Full UI scrolling, quests block detailed descriptions, unbreakable house structures, and click-to-start/turn-in quest functionality have been restored.</div>
                     </div>
@@ -616,12 +708,45 @@
 </div>
 
 <div id="settings-modal">
-    <div class="modal-content">
-        <div class="card-title" style="margin:0; font-size:1.1em;">Settings</div>
-        <button class="btn btn-danger" style="width:100%" id="btn-reset-save">Reset Save File</button>
-        <button class="btn" style="margin-top:2px;" id="btn-close-settings">Close</button>
+    <div class="modal-content" style="width:min(440px,94vw);max-height:90vh;overflow:auto;">
+        <div class="card-title" style="margin:0; font-size:1.1em;">⚙ Settings</div>
+        <div class="settings-row">
+            <label for="setting-theme"><b>Theme</b></label>
+            <select id="setting-theme" style="padding:7px;background:var(--bg-box);color:var(--text-main);border:1px solid var(--border-color);border-radius:5px;">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+            </select>
+        </div>
+        <div class="settings-row">
+            <label for="setting-font-size"><b>UI Font Size</b> <span id="setting-font-size-value">12px</span></label>
+            <input id="setting-font-size" type="range" min="10" max="18" step="1" value="12">
+        </div>
+        <div class="settings-row">
+            <label><b>Music</b></label>
+            <input id="music-file" class="settings-file" type="file" accept="audio/*">
+            <div id="music-name" class="music-name">No custom track loaded.</div>
+            <div style="display:flex;gap:6px;">
+                <button class="btn btn-action" id="btn-music-play" style="flex:1;">▶ Play</button>
+                <button class="btn" id="btn-music-stop" style="flex:1;">■ Stop</button>
+                <button class="btn btn-danger" id="btn-music-clear" style="flex:1;">Clear</button>
+            </div>
+        </div>
+        <div class="settings-row">
+            <label for="music-volume"><b>Music Volume</b> <span id="music-volume-value">50%</span></label>
+            <input id="music-volume" type="range" min="0" max="100" value="50">
+        </div>
+        <div class="settings-row inline">
+            <label for="music-loop"><b>Loop Track</b></label>
+            <input id="music-loop" type="checkbox" checked>
+        </div>
+        <div style="display:flex;gap:6px;">
+            <button class="btn" id="btn-replay-tutorial" style="flex:1;">Tutorial</button>
+            <button class="btn btn-danger" id="btn-reset-save" style="flex:1;">Reset Save File</button>
+        </div>
+        <button class="btn" id="btn-close-settings">Close</button>
     </div>
 </div>
+<audio id="custom-music" preload="auto"></audio>
 
 <div id="log-modal">
     <div class="modal-content">
@@ -644,6 +769,44 @@
         </div>
     </div>
 </div>
+
+<div id="tutorial-backdrop" class="tutorial-backdrop" aria-modal="true">
+    <div class="tutorial-card">
+        <div class="tutorial-step active" data-step="0">
+            <h2>⛏ Welcome, Miner!</h2>
+            <p>Mine blocks around your character, collect ores, and bring them back to the surface. Your goal is to go deeper, get stronger, and build a ridiculous mining empire.</p>
+        </div>
+        <div class="tutorial-step" data-step="1">
+            <h2>🧭 Movement & Mining</h2>
+            <p>Use <b>WASD</b> or the arrow keys to move. Walk into solid blocks to mine them. Click nearby villagers on the surface to accept and turn in quests.</p>
+        </div>
+        <div class="tutorial-step" data-step="2">
+            <h2>🎒 Backpack & Selling</h2>
+            <p>Your backpack has limited slots. Use the inventory controls to reserve items for crafting, then sell your non-reserved ores when you are ready.</p>
+        </div>
+        <div class="tutorial-step" data-step="3">
+            <h2>🌳 Skill Tree</h2>
+            <p>Level up by mining to earn <b>Skill Points</b>. Open the Stats tab and click available nodes. A node can only be purchased when every requirement in <code>skills.js</code> is at least level 1.</p>
+        </div>
+        <div class="tutorial-step" data-step="4">
+            <h2>🏆 Achievements</h2>
+            <p>Achievements track milestones like depth, mining, shiny finds, quests, and skill progression. They unlock automatically as you play.</p>
+        </div>
+        <div class="tutorial-step" data-step="5">
+            <h2>🎵 Your Music</h2>
+            <p>Open Settings to upload an audio file from your device and play it while you mine. The browser keeps the selected track for this session; your save file never uploads it anywhere.</p>
+        </div>
+        <div class="tutorial-actions">
+            <button class="btn btn-danger" id="btn-skip-tutorial">Skip Tutorial</button>
+            <div style="display:flex;gap:6px;">
+                <button class="btn" id="btn-tutorial-prev">Back</button>
+                <button class="btn btn-action" id="btn-tutorial-next">Next</button>
+            </div>
+        </div>
+        <div style="text-align:center;color:var(--text-muted);font-size:.72em;margin-top:9px;" id="tutorial-counter">1 / 6</div>
+    </div>
+</div>
+<div id="feature-toast" class="toast-feature"></div>
 
 <!-- Debug Menu Modal -->
 <div id="debug-modal">
@@ -772,7 +935,10 @@
         autoAim: false,
         gemCount: 0,
         dailyShopCycle: -1,
-        dailyShopItems: []
+        dailyShopItems: [],
+        achievements: {},
+        stats: { mined: 0, shinyMined: 0, questsCompleted: 0, maxDepth: 0, totalSold: 0 },
+        tutorialDone: false
     };
 
     let worldMap = {};
@@ -989,6 +1155,8 @@
         if (available >= needed) {
             if (consumeInventoryByWeight(oreKey, needed)) {
                 const reward = q.reward || { gem: 0 };
+                player.stats = player.stats || { mined:0, shinyMined:0, questsCompleted:0, maxDepth:0, totalSold:0 };
+                player.stats.questsCompleted++;
                 grantQuestReward(reward);
                 announce(`Quest complete: ${q.title}!`);
                 addLog(`Quest complete! Reward: ${getQuestRewardSummary(reward)}.`, 'info');
@@ -1130,13 +1298,17 @@
     }
 
     function getXpBonusMultiplier() {
-        const xpLevel = player.unlockedNodes['xp_bonus'] || 0;
-        return 1 + ([0, 0.1, 0.25, 0.5][xpLevel] || 0);
+        const masteryLevel = player.unlockedNodes['mastery'] || 0;
+        const bonuses = [0, 0.5, 1.0, 2.0];
+        return 1 + (bonuses[masteryLevel] || 0);
     }
 
     function getSellBonusMultiplier() {
         const fortuneLevel = player.unlockedNodes['fortune'] || 0;
-        return 1 + ([0, 0.05, 0.1, 0.2][fortuneLevel] || 0);
+        const deepFortuneLevel = player.unlockedNodes['deep_fortune'] || 0;
+        const fortuneBonus = [0, 0.05, 0.1, 0.2][fortuneLevel] || 0;
+        const deepBonus = [0, 0.15, 0.3][deepFortuneLevel] || 0;
+        return 1 + fortuneBonus + deepBonus;
     }
 
     function trackIndex(oreKey, isShiny, isMined) {
@@ -1953,6 +2125,10 @@
         const weight = parseFloat((baseWeight * (1 + (getTotalLuck() * 0.05))).toFixed(2));
 
         const newItem = { id: Date.now() + Math.random(), oreKey, weight, isShiny: block.isShiny, reservedFor: null };
+        player.stats = player.stats || { mined:0, shinyMined:0, questsCompleted:0, maxDepth:0, totalSold:0 };
+        player.stats.mined++;
+        if (block.isShiny) player.stats.shinyMined++;
+        player.stats.maxDepth = Math.max(player.stats.maxDepth || 0, y);
         trackIndex(oreKey, block.isShiny, true);
         updateHeaviestRecord(newItem, oreData);
 
@@ -2153,6 +2329,14 @@
     });
 
     window.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            const tutorial = document.getElementById('tutorial-backdrop');
+            if (tutorial?.classList.contains('active')) { closeTutorial(true); return; }
+            ['settings-modal','log-modal','surface-return-modal','debug-modal'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
         const key = e.key.toLowerCase();
         keyState[key] = true;
@@ -2473,6 +2657,63 @@
         updateUI();
     };
 
+    function getSkillNode(nodeId) {
+        return (SKILL_TREE_NODES || []).find(n => n.id === nodeId) || null;
+    }
+
+    function getSkillCost(node) {
+        const level = player.unlockedNodes[node.id] || 0;
+        return node.costPerLevel?.[level] ?? Infinity;
+    }
+
+    function getSkillBonusText(node, nextLevel) {
+        const bonus = node.bonusPerLevel?.[nextLevel - 1];
+        if (bonus === undefined) return '';
+        if (node.id === 'fortune' || node.id === 'deep_fortune' || node.id === 'mastery') {
+            return `${Math.round(bonus * 100)}%`;
+        }
+        if (node.id === 'vault_expansion') return `+${bonus} capacity`;
+        if (node.id === 'nuke_skill') return `+${bonus} nuke`;
+        if (node.id === 'tp_skill') return `+${bonus} TP`;
+        if (node.id === 'straf') return 'Dash';
+        if (node.id === 'pow_branch' || node.id === 'heavy_strike') return `+${bonus} power`;
+        if (node.id === 'luck_branch') return `+${bonus} luck`;
+        return bonus ? `+${bonus}` : '';
+    }
+
+    function buySkillNode(nodeId) {
+        const node = getSkillNode(nodeId);
+        if (!node) return;
+        const current = player.unlockedNodes[nodeId] || 0;
+        const unlocked = isNodeUnlocked(nodeId, player.unlockedNodes);
+        const cost = getSkillCost(node);
+
+        if (!unlocked) {
+            announce(`${node.label} is locked. Unlock its requirements first.`);
+            return;
+        }
+        if (current >= node.maxLevel) {
+            announce(`${node.label} is already maxed.`);
+            return;
+        }
+        if (player.sp < cost) {
+            announce(`You need ${cost} SP for ${node.label}.`);
+            return;
+        }
+
+        player.sp -= cost;
+        player.unlockedNodes[nodeId] = current + 1;
+
+        if (nodeId === 'nuke_skill') player.skills.nuke = (player.skills.nuke || 0) + 1;
+        if (nodeId === 'tp_skill') player.skills.tp = (player.skills.tp || 0) + 1;
+
+        addLog(`Unlocked Skill: ${node.label} (Lvl ${current + 1}/${node.maxLevel}) for ${cost} SP.`, 'info');
+        announce(`${node.label} upgraded!`);
+        checkAchievements();
+        saveGame();
+        updateUI();
+    }
+
     function renderSkillTree() {
         const container = document.getElementById('tree-container');
         const svg = document.getElementById('tree-connections');
@@ -2480,69 +2721,76 @@
         if (!container || !svg) return;
 
         if (spDisplay) spDisplay.innerText = `SP: ${player.sp}`;
-
         container.querySelectorAll('.tree-node-el').forEach(el => el.remove());
         svg.innerHTML = '';
 
-        const nodes = SKILL_TREE_NODES || {};
-        const keys = Object.keys(nodes);
+        const nodes = Array.isArray(SKILL_TREE_NODES) ? SKILL_TREE_NODES : [];
+        const nodeMap = new Map(nodes.map(n => [n.id, n]));
+        const width = 760, height = 760;
 
-        keys.forEach((nodeKey, idx) => {
-            const node = nodes[nodeKey];
-            const currentLevel = player.unlockedNodes[nodeKey] || 0;
-            const unlocked = isNodeUnlocked(nodeKey, player.unlockedNodes);
+        // Draw every dependency directly from the req array supplied by skills.js.
+        nodes.forEach(node => {
+            (node.req || []).forEach(reqId => {
+                const parent = nodeMap.get(reqId);
+                if (!parent) return;
+                const x1 = parent.x / 100 * width, y1 = parent.y / 100 * height;
+                const x2 = node.x / 100 * width, y2 = node.y / 100 * height;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+                const parentLevel = player.unlockedNodes[parent.id] || 0;
+                const childLevel = player.unlockedNodes[node.id] || 0;
+                line.setAttribute('stroke', parentLevel > 0 && isNodeUnlocked(node.id, player.unlockedNodes) ? '#10b981' : '#475569');
+                line.setAttribute('stroke-width', childLevel > 0 ? '4' : '2');
+                line.setAttribute('stroke-linecap', 'round');
+                svg.appendChild(line);
+            });
+        });
 
-            const col = idx % 3;
-            const row = Math.floor(idx / 3);
-            const left = 30 + col * 100;
-            const top = 30 + row * 80;
-
-            if (node.requires) {
-                node.requires.forEach(reqKey => {
-                    const reqIdx = keys.indexOf(reqKey);
-                    if (reqIdx >= 0) {
-                        const rCol = reqIdx % 3, rRow = Math.floor(reqIdx / 3);
-                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        line.setAttribute('x1', 30 + rCol * 100 + 25);
-                        line.setAttribute('y1', 30 + rRow * 80 + 25);
-                        line.setAttribute('x2', left + 25);
-                        line.setAttribute('y2', top + 25);
-                        line.setAttribute('stroke', currentLevel > 0 ? '#10b981' : '#475569');
-                        line.setAttribute('stroke-width', '2');
-                        svg.appendChild(line);
-                    }
-                });
-            }
+        nodes.forEach(node => {
+            const current = player.unlockedNodes[node.id] || 0;
+            const available = isNodeUnlocked(node.id, player.unlockedNodes);
+            const maxed = current >= node.maxLevel;
+            const cost = getSkillCost(node);
+            const left = node.x / 100 * width;
+            const top = node.y / 100 * height;
 
             const div = document.createElement('div');
-            div.className = 'tree-node-el';
+            div.className = `tree-node-el ${current > 0 ? 'purchased' : (available ? 'available' : 'locked')}`;
             div.style.cssText = `
-                position: absolute; left: ${left}px; top: ${top}px; width: 50px; height: 50px;
-                border-radius: 8px; border: 2px solid ${currentLevel > 0 ? '#10b981' : (unlocked ? '#3b82f6' : '#475569')};
-                background: ${currentLevel > 0 ? 'rgba(16,185,129,0.3)' : 'var(--bg-box)'};
-                color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
-                cursor: ${unlocked && player.sp > 0 ? 'pointer' : 'default'}; font-size: 0.7em; text-align: center;
-                z-index: 2; padding: 2px;
+                position:absolute; left:${left}px; top:${top}px; transform:translate(-50%,-50%);
+                width:108px; min-height:76px; border-radius:10px;
+                border:2px solid ${current > 0 ? '#10b981' : (available ? '#3b82f6' : '#475569')};
+                background:${current > 0 ? 'rgba(16,185,129,.22)' : 'var(--bg-box)'};
+                color:var(--text-main); display:flex; flex-direction:column; align-items:center; justify-content:center;
+                cursor:${available && !maxed && player.sp >= cost ? 'pointer' : 'default'};
+                text-align:center; z-index:2; padding:6px;
             `;
-
-            div.innerHTML = `<div><b>${node.name || nodeKey}</b></div><div>${currentLevel}/${node.maxLevel || 1}</div>`;
-            div.onclick = () => {
-                if (unlocked && player.sp > 0 && currentLevel < (node.maxLevel || 1)) {
-                    player.sp--;
-                    player.unlockedNodes[nodeKey] = currentLevel + 1;
-                    addLog(`Unlocked Skill: ${node.name || nodeKey} (Lvl ${currentLevel + 1})`, 'info');
-                    updateUI();
-                }
-            };
+            const reqText = node.req?.length ? `Req: ${node.req.map(id => nodeMap.get(id)?.label || id).join(' + ')}` : 'Root skill';
+            const nextBonus = !maxed ? getSkillBonusText(node, current + 1) : '';
+            div.innerHTML = `
+                <div class="tree-node-label">${node.label}</div>
+                <div class="tree-node-level">Lv ${current}/${node.maxLevel}</div>
+                ${maxed ? '<div class="tree-node-cost">MAXED</div>' : `<div class="tree-node-cost">Cost: ${cost} SP${nextBonus ? ` • ${nextBonus}` : ''}</div>`}
+            `;
+            div.title = `${node.label}\n${node.desc}\n${reqText}`;
+            div.onclick = () => buySkillNode(node.id);
             container.appendChild(div);
         });
 
-        document.getElementById('tree-stat-power').innerText = `+${player.unlockedNodes['pow_branch'] || 0}`;
-        document.getElementById('tree-stat-luck').innerText = `+${player.unlockedNodes['luck_branch'] || 0}`;
-        document.getElementById('tree-stat-capacity').innerText = `+${(player.unlockedNodes['vault_expansion'] || 0) * 10}`;
-        document.getElementById('tree-stat-straf').innerText = (player.unlockedNodes['straf'] || 0) > 0 ? 'Unlocked' : 'Locked';
-        document.getElementById('tree-stat-xp').innerText = `+${Math.round((getXpBonusMultiplier() - 1) * 100)}%`;
-        document.getElementById('tree-stat-sell').innerText = `+${Math.round((getSellBonusMultiplier() - 1) * 100)}%`;
+        const power = getTotalPower();
+        const luck = getTotalLuck();
+        const capacity = getTotalCapacity() - player.baseCapacity;
+        const strafe = (player.unlockedNodes['straf'] || 0) > 0;
+        const xpBonus = getXpBonusMultiplier();
+        const sellBonus = getSellBonusMultiplier();
+
+        document.getElementById('tree-stat-power').innerText = `+${power - player.basePower}`;
+        document.getElementById('tree-stat-luck').innerText = `+${luck - player.baseLuck}`;
+        document.getElementById('tree-stat-capacity').innerText = `+${capacity}`;
+        document.getElementById('tree-stat-straf').innerText = strafe ? 'Unlocked' : 'Locked';
+        document.getElementById('tree-stat-xp').innerText = `+${Math.round((xpBonus - 1) * 100)}%`;
+        document.getElementById('tree-stat-sell').innerText = `+${Math.round((sellBonus - 1) * 100)}%`;
     }
 
     function renderQuickConsumables() {
@@ -2629,6 +2877,8 @@
 
         player.inventory = remaining;
         player.coins += earned;
+        player.stats = player.stats || { mined:0, shinyMined:0, questsCompleted:0, maxDepth:0, totalSold:0 };
+        if (earned > 0) player.stats.totalSold += earned;
         if (earned > 0) {
             addLog(`Sold ores for $${earned.toFixed(2)}.`, 'action');
             announce(`Sold ores for +$${earned.toFixed(2)}!`);
@@ -2702,7 +2952,196 @@
         }
     };
 
+    const ACHIEVEMENTS = [
+        { id:'first_mine', icon:'⛏️', name:'First Swing', desc:'Mine your first ore.', goal:1, get:()=>player.stats.mined },
+        { id:'miner_10', icon:'🪨', name:'Getting Started', desc:'Mine 10 ores.', goal:10, get:()=>player.stats.mined },
+        { id:'miner_100', icon:'💪', name:'Seasoned Miner', desc:'Mine 100 ores.', goal:100, get:()=>player.stats.mined },
+        { id:'depth_50', icon:'🕳️', name:'Going Down', desc:'Reach 50m depth.', goal:50, get:()=>player.stats.maxDepth },
+        { id:'depth_150', icon:'🌋', name:'Deep Caverns', desc:'Reach 150m depth.', goal:150, get:()=>player.stats.maxDepth },
+        { id:'depth_500', icon:'🌑', name:'Into the Deep', desc:'Reach 500m depth.', goal:500, get:()=>player.stats.maxDepth },
+        { id:'shiny', icon:'✨', name:'Shiny!', desc:'Mine a shiny ore.', goal:1, get:()=>player.stats.shinyMined },
+        { id:'quests', icon:'📜', name:'Helpful Hands', desc:'Complete 5 quests.', goal:5, get:()=>player.stats.questsCompleted },
+        { id:'level_5', icon:'⭐', name:'Rising Star', desc:'Reach level 5.', goal:5, get:()=>player.level },
+        { id:'level_10', icon:'🌟', name:'Veteran Miner', desc:'Reach level 10.', goal:10, get:()=>player.level },
+        { id:'skills_5', icon:'🌳', name:'Specialist', desc:'Spend 5 Skill Points in the skill tree.', goal:5, get:()=>Object.entries(player.unlockedNodes || {}).reduce((s,[id,l])=>s+(id==='root'?0:l||0),0) },
+        { id:'skills_10', icon:'🌲', name:'Skill Tree Climber', desc:'Reach 10 purchased skill levels.', goal:10, get:()=>Object.entries(player.unlockedNodes || {}).reduce((s,[id,l])=>s+(id==='root'?0:l||0),0) }
+    ];
+
+    function showFeatureToast(message) {
+        const el = document.getElementById('feature-toast');
+        if (!el) return;
+        el.textContent = message;
+        el.classList.add('show');
+        clearTimeout(showFeatureToast._timer);
+        showFeatureToast._timer = setTimeout(()=>el.classList.remove('show'), 2600);
+    }
+
+    function checkAchievements() {
+        if (!player.achievements || typeof player.achievements !== 'object') player.achievements = {};
+        let changed = false;
+        ACHIEVEMENTS.forEach(a => {
+            const progress = Math.max(0, Number(a.get()) || 0);
+            if (!player.achievements[a.id] && progress >= a.goal) {
+                player.achievements[a.id] = Date.now();
+                changed = true;
+                addLog(`Achievement unlocked: ${a.name}!`, 'info');
+                showFeatureToast(`🏆 Achievement Unlocked: ${a.name}`);
+            }
+        });
+        if (changed && typeof saveGame === 'function') saveGame();
+        return changed;
+    }
+
+    function renderAchievements() {
+        const grid = document.getElementById('achievement-grid');
+        const summary = document.getElementById('achievement-summary');
+        if (!grid) return;
+        const unlockedCount = ACHIEVEMENTS.filter(a => !!player.achievements?.[a.id]).length;
+        if (summary) summary.textContent = `${unlockedCount}/${ACHIEVEMENTS.length}`;
+        grid.innerHTML = ACHIEVEMENTS.map(a => {
+            const value = Math.min(a.goal, Math.max(0, Number(a.get()) || 0));
+            const done = !!player.achievements?.[a.id];
+            const pct = Math.round(value / a.goal * 100);
+            return `<div class="achievement-card ${done ? 'unlocked' : ''}">
+                <div class="achievement-icon">${done ? a.icon : '🔒'}</div>
+                <div style="flex:1">
+                    <div class="achievement-name">${a.name}</div>
+                    <div class="achievement-desc">${a.desc}</div>
+                    <div class="achievement-progress"><div style="width:${pct}%"></div></div>
+                    <div class="achievement-status">${done ? 'UNLOCKED' : `${value}/${a.goal}`}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function applySettings() {
+        const settings = player.settings || {};
+        document.body.classList.toggle('light-mode', settings.theme === 'light');
+        const size = Math.max(10, Math.min(18, Number(settings.fontSize) || 12));
+        document.documentElement.style.setProperty('--base-font-size', `${size}px`);
+        const fs = document.getElementById('setting-font-size');
+        const fsv = document.getElementById('setting-font-size-value');
+        if (fs) fs.value = size;
+        if (fsv) fsv.textContent = `${size}px`;
+        const theme = document.getElementById('setting-theme');
+        if (theme) theme.value = settings.theme || 'dark';
+        const vol = Math.max(0, Math.min(100, Number(settings.musicVolume ?? 50)));
+        const volume = document.getElementById('music-volume');
+        const volumeLabel = document.getElementById('music-volume-value');
+        if (volume) volume.value = vol;
+        if (volumeLabel) volumeLabel.textContent = `${vol}%`;
+        const music = document.getElementById('custom-music');
+        if (music) {
+            music.volume = vol / 100;
+            music.loop = settings.musicLoop !== false;
+        }
+    }
+
+    function updateMusicUI() {
+        const music = document.getElementById('custom-music');
+        const name = document.getElementById('music-name');
+        if (!name || !music) return;
+        name.textContent = music.dataset.fileName ? `Loaded: ${music.dataset.fileName}` : 'No custom track loaded.';
+    }
+
+    function openTutorial() {
+        const overlay = document.getElementById('tutorial-backdrop');
+        if (!overlay) return;
+        overlay.classList.add('active');
+        window.tutorialStep = 0;
+        renderTutorialStep();
+    }
+
+    function closeTutorial(markDone = true) {
+        const overlay = document.getElementById('tutorial-backdrop');
+        if (overlay) overlay.classList.remove('active');
+        if (markDone) {
+            player.tutorialDone = true;
+            saveGame();
+        }
+    }
+
+    function renderTutorialStep() {
+        const steps = [...document.querySelectorAll('.tutorial-step')];
+        if (!steps.length) return;
+        const max = steps.length - 1;
+        window.tutorialStep = Math.max(0, Math.min(max, window.tutorialStep || 0));
+        steps.forEach((el, i) => el.classList.toggle('active', i === window.tutorialStep));
+        const counter = document.getElementById('tutorial-counter');
+        if (counter) counter.textContent = `${window.tutorialStep + 1} / ${steps.length}`;
+        const prev = document.getElementById('btn-tutorial-prev');
+        const next = document.getElementById('btn-tutorial-next');
+        if (prev) prev.disabled = window.tutorialStep === 0;
+        if (next) next.textContent = window.tutorialStep === max ? 'Finish' : 'Next';
+    }
+
+    function initFeatureSystems() {
+        player.settings = { theme:'dark', fontSize:12, musicVolume:50, musicLoop:true, ...(player.settings || {}) };
+        if (!player.stats) player.stats = { mined:0, shinyMined:0, questsCompleted:0, maxDepth:0, totalSold:0 };
+        if (!player.achievements) player.achievements = {};
+        applySettings();
+
+        const theme = document.getElementById('setting-theme');
+        const font = document.getElementById('setting-font-size');
+        const volume = document.getElementById('music-volume');
+        const loop = document.getElementById('music-loop');
+        if (theme) theme.onchange = e => { player.settings.theme=e.target.value; applySettings(); saveGame(); };
+        if (font) font.oninput = e => { player.settings.fontSize=Number(e.target.value); applySettings(); saveGame(); };
+        if (volume) volume.oninput = e => {
+            player.settings.musicVolume=Number(e.target.value);
+            applySettings();
+            saveGame();
+        };
+        if (loop) {
+            loop.checked = player.settings.musicLoop !== false;
+            loop.onchange = e => { player.settings.musicLoop=e.target.checked; applySettings(); saveGame(); };
+        }
+
+        const file = document.getElementById('music-file');
+        const music = document.getElementById('custom-music');
+        if (file) file.onchange = e => {
+            const selected = e.target.files?.[0];
+            if (!selected || !selected.type.startsWith('audio/')) return;
+            if (music.dataset.objectUrl) URL.revokeObjectURL(music.dataset.objectUrl);
+            const url = URL.createObjectURL(selected);
+            music.dataset.objectUrl = url;
+            music.dataset.fileName = selected.name;
+            music.src = url;
+            music.volume = (player.settings.musicVolume ?? 50) / 100;
+            music.loop = player.settings.musicLoop !== false;
+            updateMusicUI();
+            music.play().catch(()=>announce('Press Play to start your uploaded track.'));
+        };
+        document.getElementById('btn-music-play').onclick = () => {
+            if (!music.src) { announce('Upload an audio track first.'); return; }
+            music.play().catch(()=>announce('Your browser blocked autoplay. Press Play again.'));
+        };
+        document.getElementById('btn-music-stop').onclick = () => music.pause();
+        document.getElementById('btn-music-clear').onclick = () => {
+            music.pause();
+            if (music.dataset.objectUrl) URL.revokeObjectURL(music.dataset.objectUrl);
+            music.removeAttribute('src'); music.load();
+            music.dataset.objectUrl=''; music.dataset.fileName='';
+            if (file) file.value='';
+            updateMusicUI();
+        };
+        document.getElementById('btn-replay-tutorial').onclick = openTutorial;
+
+        document.getElementById('btn-tutorial-prev').onclick = () => { window.tutorialStep--; renderTutorialStep(); };
+        document.getElementById('btn-tutorial-next').onclick = () => {
+            const max = document.querySelectorAll('.tutorial-step').length - 1;
+            if (window.tutorialStep >= max) closeTutorial(true);
+            else { window.tutorialStep++; renderTutorialStep(); }
+        };
+        document.getElementById('btn-skip-tutorial').onclick = () => closeTutorial(true);
+
+        updateMusicUI();
+    }
+
     function updateUI() {
+        player.stats = player.stats || { mined:0, shinyMined:0, questsCompleted:0, maxDepth:0, totalSold:0 };
+        player.stats.maxDepth = Math.max(Number(player.stats.maxDepth) || 0, Math.max(0, player.y));
+        checkAchievements();
         document.getElementById('val-coins').innerText = `$${player.coins.toFixed(2)}`;
         document.getElementById('val-depth').innerText = `${Math.max(0, player.y)}m`;
         document.getElementById('val-level').innerText = `Lvl ${player.level}`;
@@ -2725,6 +3164,7 @@
         renderMuseumView();
         renderInventory();
         renderSkillTree();
+        renderAchievements();
 
         const pCost = getPowerCost();
         const cCost = getCapCost();
@@ -2758,15 +3198,23 @@
             const data = localStorage.getItem('avg_mining_game_save');
             if (data) {
                 const parsed = JSON.parse(data);
-                if (parsed.player) player = { ...player, ...parsed.player };
+                if (parsed.player) {
+                    const oldSaveHadTutorialFlag = Object.prototype.hasOwnProperty.call(parsed.player, 'tutorialDone');
+                    player = { ...player, ...parsed.player };
+                    if (!oldSaveHadTutorialFlag) player.tutorialDone = true;
+                }
             }
         } catch(e) { console.error('Load error', e); }
     }
 
     loadGame();
+    initFeatureSystems();
     spawnQuestGivers();
     revealLoadedArea(player.x, player.y);
     updateUI();
+
+    // Show the skippable tutorial only for a genuinely new save.
+    if (!player.tutorialDone) setTimeout(openTutorial, 250);
 
     setInterval(saveGame, 10000);
 
