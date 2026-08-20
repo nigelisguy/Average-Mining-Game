@@ -327,16 +327,17 @@
         .news-body { font-size: 0.8em; color: var(--text-main); line-height: 1.3; }
 
         #permanent-inventory {
-            flex: 0 0 280px;
-            height: 280px;
-            max-height: 35vh;
+            flex: 1 1 0;
+            min-height: 220px;
+            height: auto;
+            max-height: none;
             border-top: 2px solid var(--border-color);
             background: var(--bg-header);
             padding: 10px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            flex-shrink: 0;
+            min-width: 0;
         }
 
         .inventory-header {
@@ -351,7 +352,7 @@
         }
 
         #inventory-list {
-            flex: 1;
+            flex: 1 1 auto;
             min-height: 0;
             overflow-y: auto;
             display: flex;
@@ -361,7 +362,12 @@
             padding-right: 4px;
         }
 
-        .inv-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-item); padding: 6px 8px; border-radius: 6px; font-size: 0.8em; border: 2px solid transparent; flex-shrink: 0; }
+        .inv-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-item); padding: 7px 8px; border-radius: 6px; font-size: 0.8em; border: 2px solid transparent; flex-shrink: 0; gap: 8px; }
+        .inv-ore-info { display:flex; align-items:center; gap:8px; min-width:0; flex:1; }
+        .inv-ore-sprite { width:28px; height:28px; min-width:28px; object-fit:contain; image-rendering:pixelated; border-radius:4px; border:2px solid transparent; background:var(--bg-box); }
+        .inv-ore-square { width:24px; height:24px; min-width:24px; border-radius:4px; border:2px solid rgba(255,255,255,.35); }
+        .inv-ore-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .inv-rarity { font-size:.72em; font-weight:bold; opacity:.9; }
         .inv-item.shiny-item { animation: rainbow-glow 2s infinite linear; }
         .reserve-btn { background: var(--border-color); color: var(--text-main); border: none; width: 22px; height: 22px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85em; display: flex; align-items: center; justify-content: center; }
         .reserve-btn:hover { background: var(--secondary-color); color: #fff; }
@@ -493,10 +499,46 @@
             opacity:0; pointer-events:none; z-index:6000; background:var(--bg-card); border:1px solid #f59e0b;
             border-radius:8px; padding:10px 14px; box-shadow:0 5px 22px rgba(0,0,0,.5); transition:.25s; }
         .toast-feature.show { opacity:1; transform:translateX(-50%) translateY(0); }
+        #main-menu { position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 50% 35%, rgba(16,185,129,.12), transparent 42%), var(--bg-viewport); padding:20px; }
+        #main-menu.hidden { display:none; }
+        .main-menu-card { width:min(760px,94vw); max-height:92vh; overflow:auto; padding:24px; background:var(--bg-card); border:2px solid var(--border-color); border-radius:14px; box-shadow:0 18px 60px rgba(0,0,0,.55); }
+        .main-menu-title { font-size:2em; font-weight:900; color:var(--primary-color); text-align:center; }
+        .main-menu-subtitle { color:var(--text-muted); text-align:center; margin:5px 0 18px; }
+        .save-slot-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+        .save-slot { min-height:150px; padding:12px; background:var(--bg-box); border:1px solid var(--border-color); border-radius:9px; display:flex; flex-direction:column; gap:7px; }
+        .save-slot-title { font-weight:900; color:var(--text-title); font-size:1.05em; }
+        .save-slot-info { color:var(--text-muted); font-size:.78em; line-height:1.35; flex:1; }
+        .save-slot-actions { display:flex; gap:6px; }
+        .save-slot-actions .btn { flex:1; }
+        .menu-tools { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+        .seed-box { margin-top:14px; padding:10px; background:var(--bg-box); border:1px solid var(--border-color); border-radius:8px; }
+        .seed-row { display:flex; gap:6px; margin-top:6px; }
+        .seed-row input { flex:1; min-width:0; padding:8px; background:var(--bg-main); color:var(--text-main); border:1px solid var(--border-color); border-radius:5px; }
+        .menu-news { margin-top:14px; }
+        .menu-news .news-article { margin-bottom:6px; }
+        @media (max-width:700px) { .save-slot-grid { grid-template-columns:1fr; } .menu-tools { grid-template-columns:1fr; } }
 
     </style>
 </head>
 <body>
+
+<div id="main-menu">
+    <div class="main-menu-card">
+        <div class="main-menu-title">Average Mining Game</div>
+        <div class="main-menu-subtitle">Choose a save slot, generate a world seed, and get mining.</div>
+        <div class="save-slot-grid" id="save-slot-grid"></div>
+        <div class="seed-box">
+            <div class="card-title" style="margin:0;">World Seed</div>
+            <div style="font-size:.78em;color:var(--text-muted);">New games use this seed for deterministic world generation.</div>
+            <div class="seed-row"><input id="menu-seed" maxlength="32" placeholder="Enter a seed or generate one"><button class="btn" id="btn-generate-seed">🎲 Generate</button></div>
+        </div>
+        <div class="menu-tools"><button class="btn" id="btn-menu-settings">⚙ Options</button><button class="btn btn-action" id="btn-menu-news">📰 News</button></div>
+        <div class="menu-news" id="menu-news-panel" style="display:none;">
+            <div class="card-title">Average Mining Game News</div>
+            <div class="news-article"><div class="news-date">SYSTEM UPDATE • TODAY</div><div class="news-header">Release B0.1</div><div class="news-body">Hello World! Full UI scrolling, quests block detailed descriptions, unbreakable house structures, and click-to-start/turn-in quest functionality have been restored.</div></div>
+        </div>
+    </div>
+</div>
 
 <div id="game-container">
     <div id="left-quick-panel">
@@ -676,7 +718,6 @@
                     <div class="log-subtabs">
                         <button class="log-subtab active" data-log="log-index" onclick="switchLogSection('log-index')">Index</button>
                         <button class="log-subtab" data-log="log-museum" onclick="switchLogSection('log-museum')">Museum</button>
-                        <button class="log-subtab" data-log="log-news" onclick="switchLogSection('log-news')">News</button>
                     </div>
                     <div id="log-index" class="log-pane active">
                         <details open>
@@ -697,13 +738,7 @@
                         <div class="card-title" style="margin-top:10px">Collection Vault (&gt;UR Rarities)</div>
                         <div id="vault-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
                     </div>
-                    <div id="log-news" class="log-pane">
-                        <div class="card-title">Average Mining Game News</div>
-                        <div class="news-article">
-                            <div class="news-date">SYSTEM UPDATE • TODAY</div>
-                            <div class="news-header">Release B0.1</div>
-                            <div class="news-body">Hello World! Full UI scrolling, quests block detailed descriptions, unbreakable house structures, and click-to-start/turn-in quest functionality have been restored.</div>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -736,7 +771,6 @@
             <div style="position: absolute; bottom: 46px; left: 0; display: flex; flex-direction: column; gap: 6px; background: var(--bg-card); padding: 6px; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                 <button class="floating-circle-btn" id="btn-return-surface" title="Return to Surface">Return</button>
                 <button class="floating-circle-btn" id="btn-open-log" title="Action & Error Log">Log</button>
-                <button class="floating-circle-btn" id="btn-open-settings" title="Settings">⚙</button>
             </div>
         </details>
     </div>
@@ -986,6 +1020,7 @@
 
     let player = {
         x: 10, y: 0, dirX: 0, dirY: 1,
+        seed: 'AVERAGE-MINER-1',
         coins: 0, level: 1, xp: 0, xpNext: 100, sp: 0,
         basePower: 1, powerLvl: 0,
         baseCapacity: 20, capLvl: 0,
@@ -1388,8 +1423,18 @@
             updateUI();
             return true;
         }
+        if (player.questPrompt?.giverId === giver.id && player.questPrompt?.quest) {
+            const q = player.questPrompt.quest;
+            player.quest = { ...q, npcX: giver.x, npcY: giver.y, npcName: giver.name, giverId: giver.id, accepted: true };
+            player.questPrompt = null;
+            announce(`Lesson accepted: ${player.quest.stage} — ${player.quest.title}`);
+            addLog(`Starter NPC lesson accepted: ${player.quest.title}.`, 'info');
+            updateUI();
+            saveGame();
+            return true;
+        }
         const q = createTutorialQuest(giver);
-        player.questPrompt = q;
+        player.questPrompt = { giverId: giver.id, quest: q };
         announce(`Guide: Lesson ${q.stage} — ${q.title}`);
         addLog(`Guide offers lesson ${q.stage}/5: ${q.description}`, 'info');
         updateUI();
@@ -1643,12 +1688,22 @@
         return canCraftRecipe(recipeId, recipe);
     }
 
+    function seedHash(seed) {
+        let h = 2166136261 >>> 0;
+        const s = String(seed || '');
+        for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+        return h >>> 0;
+    }
     function pseudoNoise(x, y) {
-        let n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+        const s = seedHash(player.seed || 'AVERAGE-MINER-1');
+        let n = Math.sin(x * 12.9898 + y * 78.233 + s * 0.000001) * 43758.5453;
         return n - Math.floor(n);
     }
+    function seededRandom(x, y, salt = 0) {
+        return pseudoNoise(x * 1.731 + salt * 0.117, y * 2.417 - salt * 0.071);
+    }
 
-    function rollOreByDepth(y, highRarityOnly = false) {
+    function rollOreByDepth(y, highRarityOnly = false, x = 0) {
         const pool1 = ['leaf_litter','dirt','coarse_dirt','pebbled_dirt','boulder','anthill','gravel','lost_coin','pocketed_clover'];
         const pool2 = ['soft_rock','limestone','fossilized_shell','dense_flint','geode_fragment','granite_core','petrified_amber'];
         const pool3 = ['basalt_block','iron_ore','obsidian_slate','deep_quartz','cobalt_vein','magma_crystal','void_shard','celestial_core','aether_cluster','singularity_ore'];
@@ -1668,7 +1723,7 @@
             return { key, weight: w };
         });
 
-        let randomNum = Math.random() * totalWeight;
+        let randomNum = seededRandom(x, y, selectedPool.length) * totalWeight;
         for (let i = 0; i < weightedItems.length; i++) {
             if (randomNum < weightedItems[i].weight) return weightedItems[i].key;
             randomNum -= weightedItems[i].weight;
@@ -2154,7 +2209,7 @@
 
         const caveVal = pseudoNoise(x * 0.15, y * 0.15);
         const isChest = caveVal > 0.985 && y > 10;
-        const blockType = isChest ? 'chest' : ((caveVal > 0.58 && y > 3) ? 'air' : rollOreByDepth(y));
+        const blockType = isChest ? 'chest' : ((caveVal > 0.58 && y > 3) ? 'air' : rollOreByDepth(y, false, x));
         const isShiny = Math.random() < BASE_SHINY_CHANCE;
         const block = {
             type: blockType,
@@ -2259,7 +2314,7 @@
                 const key = CHEST_CONSUMABLES[Math.floor(Math.random() * CHEST_CONSUMABLES.length)];
                 pendingChestLoot.push({ id: Date.now() + Math.random() + i, type: 'consumable', key, amount: 1, label: key.replace(/_/g, ' ') });
             } else {
-                const oreKey = rollOreByDepth(y, true);
+                const oreKey = rollOreByDepth(y, true, x);
                 const isShiny = Math.random() < BASE_SHINY_CHANCE;
                 const weight = parseFloat(((0.5 + Math.random() * 2.5) * (1 + (getTotalLuck() * 0.05))).toFixed(2));
                 pendingChestLoot.push({ id: Date.now() + Math.random() + i, type: 'ore', oreKey, weight, isShiny, reservedFor: null });
@@ -2844,17 +2899,21 @@
             const ore = ORES[item.oreKey] || { name: item.oreKey, rarity: 'common' };
             const rarity = getRarity(ore.rarity);
             const shinyClass = item.isShiny ? 'shiny-item' : '';
-            const reservedTag = item.reservedFor ? `<span style="color:var(--tertiary-color); font-size:0.75em;">[Reserved]</span>` : '';
-
+            const reservedTag = item.reservedFor ? `<span style="color:var(--tertiary-color);font-size:.72em">[Reserved]</span>` : '';
+            const sprite = `assets/${item.oreKey}.png`;
             return `
-                <div class="inv-item ${shinyClass}" style="border-color:${rarity.color}">
-                    <div>
-                        <span style="color:${rarity.color}; font-weight:bold">${ore.name} ${item.isShiny ? '✨' : ''}</span>
-                        ${reservedTag}
+                <div class="inv-item ${shinyClass}" style="border-color:${rarity.color}" title="${rarity.name} rarity">
+                    <div class="inv-ore-info">
+                        <img class="inv-ore-sprite" src="${sprite}" alt="" style="border-color:${rarity.color}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                        <span class="inv-ore-square" style="display:none;background:${rarity.color};box-shadow:0 0 0 1px ${rarity.color},inset 0 0 0 1px rgba(0,0,0,.35)"></span>
+                        <div style="min-width:0">
+                            <div class="inv-ore-name" style="color:${rarity.color};font-weight:bold">${ore.name} ${item.isShiny ? '✨' : ''}</div>
+                            <div class="inv-rarity" style="color:${rarity.color}">${rarity.name} ${reservedTag}</div>
+                        </div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:6px;">
+                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
                         <span>${item.weight.toFixed(1)}kg</span>
-                        <button class="reserve-btn" onclick="toggleItemReserve(${idx})">${item.reservedFor ? 'Reserved' : 'Reserve'}</button>
+                        <button class="reserve-btn" onclick="toggleItemReserve(${idx})" title="${item.reservedFor ? 'Unreserve' : 'Reserve'}">${item.reservedFor ? '✓' : 'R'}</button>
                     </div>
                 </div>
             `;
@@ -3150,15 +3209,25 @@
         renderLogs();
     };
 
-    document.getElementById('btn-open-settings').onclick = () => {
-        document.getElementById('settings-modal').style.display = 'flex';
+    const btnOpenSettings = document.getElementById('btn-open-settings');
+    if (btnOpenSettings) btnOpenSettings.onclick = () => {
+        const modal = document.getElementById('settings-modal');
+        if (modal) modal.style.display = 'flex';
     };
-    document.getElementById('btn-close-settings').onclick = () => {
-        document.getElementById('settings-modal').style.display = 'none';
+    const btnMenuSettings = document.getElementById('btn-menu-settings');
+    if (btnMenuSettings) btnMenuSettings.onclick = () => {
+        const modal = document.getElementById('settings-modal');
+        if (modal) modal.style.display = 'flex';
     };
-    document.getElementById('btn-reset-save').onclick = () => {
-        if (confirm('Are you sure you want to reset your save game?')) {
-            localStorage.removeItem('avg_mining_game_save');
+    const btnCloseSettings = document.getElementById('btn-close-settings');
+    if (btnCloseSettings) btnCloseSettings.onclick = () => {
+        const modal = document.getElementById('settings-modal');
+        if (modal) modal.style.display = 'none';
+    };
+    const btnResetSave = document.getElementById('btn-reset-save');
+    if (btnResetSave) btnResetSave.onclick = () => {
+        if (confirm(`Are you sure you want to reset save slot ${activeSaveSlot || ''}?`)) {
+            if (activeSaveSlot) localStorage.removeItem(getSlotKey(activeSaveSlot));
             location.reload();
         }
     };
@@ -3451,43 +3520,48 @@
         document.getElementById('desc-luck').innerText = `Luck: ${getTotalLuck()} ➔ ${getTotalLuck() + 1}`;
     }
 
-    function saveGame() {
-        try {
-            localStorage.setItem('avg_mining_game_save', JSON.stringify({ player }));
-            if (saveStatus) {
-                saveStatus.style.opacity = '1';
-                setTimeout(() => { saveStatus.style.opacity = '0'; }, 1500);
-            }
-        } catch(e) { console.error('Save error', e); }
+    const SAVE_SLOT_COUNT = 3;
+    let activeSaveSlot = null;
+    let gameStarted = false;
+    function getSlotKey(slot) { return `avg_mining_game_save_slot_${slot}`; }
+    function saveGame(showStatus = true) {
+        if (!activeSaveSlot) return;
+        try { localStorage.setItem(getSlotKey(activeSaveSlot), JSON.stringify({ version: 2, player }));
+            if (showStatus && saveStatus) { saveStatus.style.opacity='1'; setTimeout(()=>saveStatus.style.opacity='0',1500); }
+        } catch(e) { console.error('Save error',e); }
     }
-
-    function loadGame() {
-        try {
-            const data = localStorage.getItem('avg_mining_game_save');
-            if (data) {
-                const parsed = JSON.parse(data);
-                if (parsed.player) {
-                    const oldSaveHadTutorialFlag = Object.prototype.hasOwnProperty.call(parsed.player, 'tutorialDone');
-                    player = { ...player, ...parsed.player };
-                    if (!oldSaveHadTutorialFlag) player.tutorialDone = true;
-                }
-            }
-        } catch(e) { console.error('Load error', e); }
+    function loadSlot(slot) { try { const d=localStorage.getItem(getSlotKey(slot)); return d ? (JSON.parse(d).player || null) : null; } catch(e) { return null; } }
+    function generateSeed() { const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const bytes=new Uint32Array(8); crypto.getRandomValues(bytes); return Array.from(bytes,n=>chars[n%chars.length]).join(''); }
+    function resetPlayerForNewGame(seed) {
+        player = { x:10,y:0,dirX:0,dirY:1,seed,coins:0,level:1,xp:0,xpNext:100,sp:0,basePower:1,powerLvl:0,baseCapacity:20,capLvl:0,baseLuck:1,luckLvl:0,inventory:[],vault:[],hasMuseum:false,skills:{tp:0,nuke:0},craftedItems:{},pinnedRecipes:[],unlockedNodes:{root:1},index:{},records:{heaviestBlock:null},questGivers:[],quest:null,questPrompt:null,tabUnlocks:{museum:false},autoMine:false,autoTools:false,autoAim:false,gemCount:0,dailyShopCycle:-1,dailyShopItems:[],achievements:{},stats:{mined:0,shinyMined:0,questsCompleted:0,maxDepth:0,totalSold:0},tutorialQuest:{stage:0,completed:false},tutorialDone:false };
+        worldMap={}; imageCache={}; logEntries=[];
     }
-
-    loadGame();
-    player.tutorialQuest = player.tutorialQuest || { stage: 0, completed: false };
-    initFeatureSystems();
-    spawnQuestGivers();
-    revealLoadedArea(player.x, player.y);
-    updateUI();
-
-    // Show the skippable tutorial only for a genuinely new save.
-    if (!player.tutorialDone) setTimeout(openTutorial, 250);
-
-    setInterval(saveGame, 10000);
+    function startGame(slot, existingPlayer=null, seed=null) {
+        activeSaveSlot=slot;
+        if(existingPlayer){ player={...player,...existingPlayer}; if(!player.seed) player.seed='AVERAGE-MINER-1'; worldMap={}; imageCache={}; logEntries=[]; }
+        else resetPlayerForNewGame(seed || generateSeed());
+        gameStarted=true; document.getElementById('main-menu')?.classList.add('hidden'); document.getElementById('game-container').style.display='flex';
+        player.tutorialQuest=player.tutorialQuest || {stage:0,completed:false}; initFeatureSystems(); spawnQuestGivers(); revealLoadedArea(player.x,player.y); applySettings(); updateUI(); saveGame(false);
+        if(!player.tutorialDone) setTimeout(openTutorial,250);
+    }
+    function formatSaveSlot(slot) {
+        const d=loadSlot(slot); if(!d) return `<div class="save-slot-title">Slot ${slot}</div><div class="save-slot-info">Empty save slot.<br>Start a new world here.</div><div class="save-slot-actions"><button class="btn btn-action" data-new-slot="${slot}">New Game</button></div>`;
+        return `<div class="save-slot-title">Slot ${slot}</div><div class="save-slot-info">Level ${d.level||1} • Depth ${d.stats?.maxDepth||0}m<br>Seed: <b>${d.seed||'—'}</b><br>Money: $${Number(d.coins||0).toFixed(2)}</div><div class="save-slot-actions"><button class="btn btn-action" data-load-slot="${slot}">Load</button><button class="btn btn-danger" data-delete-slot="${slot}">Delete</button></div>`;
+    }
+    function renderMainMenu(){ const grid=document.getElementById('save-slot-grid'); if(!grid)return; grid.innerHTML=[1,2,3].map(formatSaveSlot).join('');
+        grid.querySelectorAll('[data-load-slot]').forEach(b=>b.onclick=()=>startGame(Number(b.dataset.loadSlot),loadSlot(Number(b.dataset.loadSlot))));
+        grid.querySelectorAll('[data-new-slot]').forEach(b=>b.onclick=()=>{const slot=Number(b.dataset.newSlot); const seed=(document.getElementById('menu-seed')?.value||'').trim()||generateSeed(); if(loadSlot(slot)&&!confirm(`Replace save slot ${slot}?`))return; startGame(slot,null,seed);});
+        grid.querySelectorAll('[data-delete-slot]').forEach(b=>b.onclick=()=>{const slot=Number(b.dataset.deleteSlot); if(confirm(`Delete save slot ${slot}? This cannot be undone.`)){localStorage.removeItem(getSlotKey(slot));renderMainMenu();}});
+    }
+    document.getElementById('btn-generate-seed').onclick=()=>document.getElementById('menu-seed').value=generateSeed();
+    document.getElementById('btn-menu-news').onclick=()=>{const p=document.getElementById('menu-news-panel');p.style.display=p.style.display==='none'?'block':'none';};
+    document.getElementById('btn-menu-settings').onclick=()=>document.getElementById('settings-modal').style.display='flex';
+    if(!localStorage.getItem(getSlotKey(1))){const legacy=localStorage.getItem('avg_mining_game_save');if(legacy)localStorage.setItem(getSlotKey(1),legacy);}
+    localStorage.removeItem('avg_mining_game_save'); document.getElementById('game-container').style.display='none'; renderMainMenu();
+    setInterval(()=>{if(gameStarted)saveGame(false);},10000);
 
     function gameLoop() {
+        if (!gameStarted) { requestAnimationFrame(gameLoop); return; }
         runAutomation();
         render();
         const timerEl = document.getElementById('daily-shop-timer');
