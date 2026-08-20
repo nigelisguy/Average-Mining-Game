@@ -12,35 +12,52 @@
     <style>
         :root {
             --primary-color: #10b981;
-            --primary-border: #10b981;
-            --primary-bg-alpha: rgba(16, 185, 129, 0.2);
             --secondary-color: #3b82f6;
-            --secondary-border: #3b82f6;
+            --tertiary-color: #f59e0b;
+            --primary-border: var(--primary-color);
+            --secondary-border: var(--secondary-color);
+            --tertiary-border: var(--tertiary-color);
+            --primary-bg-alpha: color-mix(in srgb, var(--primary-color) 20%, transparent);
             --base-font-size: 12px;
-            
-            --bg-main: #0c0d10;
-            --bg-viewport: #050505;
-            --bg-sidebar: #16171d;
-            --bg-header: #111216;
-            --bg-card: #20222a;
-            --bg-box: #121316;
-            --bg-item: #1b1d24;
-            --border-color: #2a2c34;
-            --text-main: #e2e8f0;
-            --text-muted: #94a3b8;
-            --text-title: #f8fafc;
+
+            --dark-0: #050505;
+            --dark-1: #0c0d10;
+            --dark-2: #111216;
+            --dark-3: #16171d;
+            --dark-4: #1b1d24;
+            --dark-5: #20222a;
+            --dark-6: #2a2c34;
+
+            --white-0: #ffffff;
+            --white-1: #f8fafc;
+            --white-2: #f1f5f9;
+            --white-3: #e2e8f0;
+            --white-4: #cbd5e1;
+            --white-5: #94a3b8;
+
+            --bg-main: var(--dark-1);
+            --bg-viewport: var(--dark-0);
+            --bg-sidebar: var(--dark-3);
+            --bg-header: var(--dark-2);
+            --bg-card: var(--dark-5);
+            --bg-box: var(--dark-2);
+            --bg-item: var(--dark-4);
+            --border-color: var(--dark-6);
+            --text-main: var(--white-3);
+            --text-muted: var(--white-5);
+            --text-title: var(--white-1);
         }
 
         body.light-mode {
-            --bg-main: #f1f5f9;
-            --bg-viewport: #e2e8f0;
-            --bg-sidebar: #ffffff;
-            --bg-header: #f8fafc;
-            --bg-card: #f1f5f9;
-            --bg-box: #e2e8f0;
-            --bg-item: #cbd5e1;
-            --border-color: #cbd5e1;
-            --text-main: #0f172a;
+            --bg-main: var(--white-2);
+            --bg-viewport: var(--white-3);
+            --bg-sidebar: var(--white-0);
+            --bg-header: var(--white-1);
+            --bg-card: var(--white-2);
+            --bg-box: var(--white-3);
+            --bg-item: var(--white-4);
+            --border-color: var(--white-4);
+            --text-main: #111827;
             --text-muted: #475569;
             --text-title: #020817;
         }
@@ -375,6 +392,12 @@
         .modal-content {
             background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; width: 340px; padding: 16px; display: flex; flex-direction: column; gap: 12px;
         }
+        .color-setting { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; }
+        .color-bar { width:100%; height:30px; padding:2px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-box); cursor:pointer; }
+        .color-bar input[type="color"] { width:100%; height:100%; padding:0; border:0; border-radius:4px; background:transparent; cursor:pointer; }
+        .color-value { min-width:72px; text-align:right; font-family:monospace; font-size:.8em; color:var(--text-muted); }
+        .palette-note { font-size:.78em; color:var(--text-muted); line-height:1.35; }
+
 
         .log-container { display: flex; flex-direction: column; gap: 4px; max-height: 280px; overflow-y: auto; font-family: monospace; font-size: 0.8em; background: var(--bg-box); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); }
         .log-entry { padding: 3px; border-bottom: 1px solid var(--border-color); word-break: break-word; }
@@ -417,7 +440,7 @@
         .tree-node-el.purchased { box-shadow: 0 0 14px rgba(16,185,129,.35); }
         .tree-node-label { font-size: 11px; line-height:1.05; font-weight:800; }
         .tree-node-level { font-size:10px; margin-top:3px; opacity:.9; }
-        .tree-node-cost { font-size:9px; color:#f59e0b; margin-top:2px; }
+        .tree-node-cost { font-size:9px; color:var(--tertiary-color); margin-top:2px; }
         .tree-legend { display:flex; gap:8px; flex-wrap:wrap; margin-top:7px; font-size:.72em; color:var(--text-muted); }
         .tree-legend span { display:inline-flex; align-items:center; gap:4px; }
         .tree-dot { width:9px; height:9px; border-radius:50%; border:1px solid currentColor; display:inline-block; }
@@ -426,13 +449,27 @@
             background:var(--bg-box); border:1px solid var(--border-color); border-radius:7px;
             padding:9px; display:flex; gap:9px; align-items:flex-start;
         }
-        .achievement-card.unlocked { border-color:#f59e0b; box-shadow:0 0 10px rgba(245,158,11,.12); }
+        .achievement-card.unlocked { border-color:var(--tertiary-color); box-shadow:0 0 10px rgba(245,158,11,.12); }
         .achievement-icon { font-size:23px; width:30px; text-align:center; }
         .achievement-name { font-weight:800; color:var(--text-title); }
         .achievement-desc { color:var(--text-muted); font-size:.78em; margin-top:2px; line-height:1.25; }
         .achievement-progress { margin-top:5px; height:5px; background:var(--bg-item); border-radius:3px; overflow:hidden; }
         .achievement-progress > div { height:100%; background:#f59e0b; transition:width .2s; }
-        .achievement-status { font-size:.7em; margin-top:3px; color:#f59e0b; font-weight:700; }
+        .achievement-status { font-size:.7em; margin-top:3px; color:var(--tertiary-color); font-weight:700; }
+        .achievement-tier { font-size:.68em; color:var(--text-muted); margin-top:2px; }
+        .achievement-reward { font-size:.7em; color:#10b981; margin-top:3px; font-weight:700; }
+        .xp-wrap { margin-top:5px; width:100%; }
+        .xp-label { display:flex; justify-content:space-between; gap:8px; font-size:.72em; color:var(--text-muted); }
+        .xp-bar { height:7px; background:var(--bg-item); border:1px solid var(--border-color); border-radius:999px; overflow:hidden; margin-top:3px; }
+        .xp-fill { height:100%; background:linear-gradient(90deg,#3b82f6,#10b981); transition:width .25s; }
+        .log-subtabs { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px; }
+        .log-subtab { border:1px solid var(--border-color); background:var(--bg-box); color:var(--text-main); border-radius:6px; padding:6px 10px; cursor:pointer; font-weight:700; font-size:.78em; }
+        .log-subtab.active { border-color:var(--primary-color); color:var(--primary-color); }
+        .log-pane { display:none; }
+        .log-pane.active { display:block; }
+        .craft-ingredient { display:inline-flex; align-items:center; gap:5px; padding:4px 7px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-box); }
+        .craft-ingredient img { width:22px; height:22px; object-fit:contain; image-rendering:auto; }
+        .craft-result-icon { width:38px; height:38px; object-fit:contain; border-radius:6px; background:var(--bg-box); border:1px solid var(--border-color); }
         .tutorial-backdrop {
             display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:5000;
             align-items:center; justify-content:center; padding:16px;
@@ -465,13 +502,13 @@
     <div id="left-quick-panel">
         <div class="quick-section">
             <details open>
-                <summary class="quick-section-title">📦 Consumables</summary>
+                <summary class="quick-section-title">Consumables</summary>
                 <div class="quick-item-list" id="quick-consumables"></div>
             </details>
         </div>
         <div class="quick-section">
             <details open>
-                <summary class="quick-section-title">📌 Pinned Crafts</summary>
+                <summary class="quick-section-title">Pinned Crafts</summary>
                 <div class="quick-item-list" id="quick-crafts"></div>
             </details>
         </div>
@@ -499,10 +536,8 @@
             <button class="tab-btn active" data-tab="tab-base" onclick="switchTab('tab-base')">Stats</button>
             <button class="tab-btn" data-tab="tab-shop" onclick="switchTab('tab-shop')">Shop</button>
             <button class="tab-btn" data-tab="tab-craft" onclick="switchTab('tab-craft')">Craft</button>
-            <button class="tab-btn" data-tab="tab-index" onclick="switchTab('tab-index')">Index</button>
-            <button class="tab-btn" data-tab="tab-achievements" onclick="switchTab('tab-achievements')">Achieve</button>
-            <button class="tab-btn" data-tab="tab-museum" onclick="switchTab('tab-museum')">Museum</button>
-            <button class="tab-btn" data-tab="tab-news" onclick="switchTab('tab-news')">News</button>
+            <button class="tab-btn" data-tab="tab-logs" onclick="switchTab('tab-logs')">Unlocks</button>
+            <button class="tab-btn" data-tab="tab-achievements" onclick="switchTab('tab-achievements')">Achievements</button>
         </div>
 
         <div class="main-tab-area">
@@ -512,8 +547,15 @@
                     <div class="stat-grid">
                         <div class="stat-box"><div>Money</div><div class="stat-val" id="val-coins">$0.00</div></div>
                         <div class="stat-box"><div>Depth</div><div class="stat-val" id="val-depth">0m</div></div>
-                        <div class="stat-box"><div>Level / XP</div><div class="stat-val" id="val-level">Lvl 1</div></div>
-                        <div class="stat-box"><div>Skill Points</div><div class="stat-val" id="val-sp" style="color:#f59e0b">0</div></div>
+                        <div class="stat-box">
+                            <div>Level / XP</div>
+                            <div class="stat-val" id="val-level">Lvl 1</div>
+                            <div class="xp-wrap">
+                                <div class="xp-label"><span id="xp-current">0 XP</span><span id="xp-needed">/ 100 XP</span></div>
+                                <div class="xp-bar"><div id="xp-fill" class="xp-fill" style="width:0%"></div></div>
+                            </div>
+                        </div>
+                        <div class="stat-box"><div>Skill Points</div><div class="stat-val" id="val-sp" style="color:var(--tertiary-color)">0</div></div>
                     </div>
                 </div>
 
@@ -528,7 +570,7 @@
                 <div class="card">
                     <div class="card-title">
                         <span>Progression Stats</span>
-                        <span id="tree-sp-display" style="color:#f59e0b">SP: 0</span>
+                        <span id="tree-sp-display" style="color:var(--tertiary-color)">SP: 0</span>
                     </div>
                     <div class="stat-grid">
                         <div class="stat-box">Power: <b id="tree-stat-power">0</b></div>
@@ -595,7 +637,7 @@
                 <!-- Daily Rotating Shop Card (Cycles every 6 hours) -->
                 <div class="card" style="margin-top: 6px;">
                     <div class="card-title">
-                        <span>🕒 Daily Express Shop</span>
+                        <span>Daily Express Shop</span>
                         <span id="daily-shop-timer" style="font-size: 0.85em; color: #f59e0b;">00:00:00</span>
                     </div>
                     <div id="daily-shop-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
@@ -628,51 +670,52 @@
                 </div>
             </div>
 
-            <div id="tab-index" class="tab-content">
+            <div id="tab-logs" class="tab-content">
                 <div class="card">
-                    <details open>
-                        <summary style="font-size: 1em; font-weight: bold; color: var(--primary-color);">Block Catalog & Bestiary</summary>
-                        <div id="index-grid" class="index-grid" style="margin-top: 6px;"></div>
-                    </details>
+                    <div class="card-title">Unlocks</div>
+                    <div class="log-subtabs">
+                        <button class="log-subtab active" data-log="log-index" onclick="switchLogSection('log-index')">Index</button>
+                        <button class="log-subtab" data-log="log-museum" onclick="switchLogSection('log-museum')">Museum</button>
+                        <button class="log-subtab" data-log="log-news" onclick="switchLogSection('log-news')">News</button>
+                    </div>
+                    <div id="log-index" class="log-pane active">
+                        <details open>
+                            <summary style="font-size:1em;font-weight:bold;color:var(--primary-color);">Block Catalog & Bestiary</summary>
+                            <div id="index-grid" class="index-grid" style="margin-top:6px;"></div>
+                        </details>
+                    </div>
+                    <div id="log-museum" class="log-pane">
+                        <div class="card-title">Museum Exhibition</div>
+                        <div id="museum-status" style="font-size:.85em;color:var(--text-muted)">Museum Stand Not Built!</div>
+                        <div id="museum-display-card" style="display:none;margin-top:8px" class="shop-item">
+                            <div class="shop-info">
+                                <span class="shop-title" id="museum-item-name">None</span>
+                                <span class="shop-desc" id="museum-item-desc">No high rarity blocks found in vault!</span>
+                                <span class="shop-desc" style="color:var(--tertiary-color);font-weight:bold" id="museum-hype-rate">Hype Rate: $0.00/sec</span>
+                            </div>
+                        </div>
+                        <div class="card-title" style="margin-top:10px">Collection Vault (&gt;UR Rarities)</div>
+                        <div id="vault-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
+                    </div>
+                    <div id="log-news" class="log-pane">
+                        <div class="card-title">Average Mining Game News</div>
+                        <div class="news-article">
+                            <div class="news-date">SYSTEM UPDATE • TODAY</div>
+                            <div class="news-header">Release B0.1</div>
+                            <div class="news-body">Hello World! Full UI scrolling, quests block detailed descriptions, unbreakable house structures, and click-to-start/turn-in quest functionality have been restored.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div id="tab-achievements" class="tab-content">
                 <div class="card">
                     <div class="card-title">
-                        <span>🏆 Achievements</span>
-                        <span id="achievement-summary" style="font-size:.8em;color:#f59e0b">0/0</span>
+                        <span>Achievements</span>
+                        <span id="achievement-summary" style="font-size:.8em;color:var(--tertiary-color)">0/0</span>
                     </div>
+                    <div style="font-size:.78em;color:var(--text-muted);margin-bottom:8px">Achievements have multiple tiers. Complete one tier to unlock the next milestone.</div>
                     <div id="achievement-grid" class="achievement-grid"></div>
-                </div>
-            </div>
-
-            <div id="tab-museum" class="tab-content">
-                <div class="card">
-                    <div class="card-title">Museum Exhibition</div>
-                    <div id="museum-status" style="font-size:0.85em; color:var(--text-muted)">Museum Stand Not Built!</div>
-                    <div id="museum-display-card" style="display:none; margin-top:8px;" class="shop-item">
-                        <div class="shop-info">
-                            <span class="shop-title" id="museum-item-name">None</span>
-                            <span class="shop-desc" id="museum-item-desc">No high rarity blocks found in vault!</span>
-                            <span class="shop-desc" style="color:#f59e0b; font-weight:bold" id="museum-hype-rate">Hype Rate: $0.00/sec</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Collection Vault (>UR Rarities)</div>
-                    <div id="vault-list" style="display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto;"></div>
-                </div>
-            </div>
-
-            <div id="tab-news" class="tab-content">
-                <div class="card">
-                    <div class="card-title">Average Mining Game News</div>
-                    <div class="news-article">
-                        <div class="news-date">SYSTEM UPDATE • 18/8/2026</div>
-                        <div class="news-header">Release B0.1</div>
-                        <div class="news-body">Hello World! Full UI scrolling, quests block detailed descriptions, unbreakable house structures, and click-to-start/turn-in quest functionality have been restored.</div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -691,8 +734,8 @@
         <details style="position: relative;">
             <summary class="floating-circle-btn" style="list-style: none;" title="Lower Left Options">⚡</summary>
             <div style="position: absolute; bottom: 46px; left: 0; display: flex; flex-direction: column; gap: 6px; background: var(--bg-card); padding: 6px; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-                <button class="floating-circle-btn" id="btn-return-surface" title="Return to Surface">⬆️</button>
-                <button class="floating-circle-btn" id="btn-open-log" title="Action & Error Log">📋</button>
+                <button class="floating-circle-btn" id="btn-return-surface" title="Return to Surface">Return</button>
+                <button class="floating-circle-btn" id="btn-open-log" title="Action & Error Log">Log</button>
                 <button class="floating-circle-btn" id="btn-open-settings" title="Settings">⚙</button>
             </div>
         </details>
@@ -709,13 +752,38 @@
 
 <div id="settings-modal">
     <div class="modal-content" style="width:min(440px,94vw);max-height:90vh;overflow:auto;">
-        <div class="card-title" style="margin:0; font-size:1.1em;">⚙ Settings</div>
+        <div class="card-title" style="margin:0; font-size:1.1em;">Settings</div>
         <div class="settings-row">
-            <label for="setting-theme"><b>Theme</b></label>
-            <select id="setting-theme" style="padding:7px;background:var(--bg-box);color:var(--text-main);border:1px solid var(--border-color);border-radius:5px;">
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-            </select>
+            <label><b>Interface Mode</b></label>
+            <div style="display:flex;gap:6px;">
+                <button class="btn" id="setting-dark-mode" style="flex:1;">Dark</button>
+                <button class="btn" id="setting-light-mode" style="flex:1;">Light</button>
+            </div>
+        </div>
+        <div class="settings-row">
+            <label><b>Accent Colors</b></label>
+            <div class="palette-note">Choose the primary, secondary, and tertiary accents using the color bars.</div>
+            <div class="color-setting">
+                <span>Primary</span>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <div class="color-bar"><input id="setting-primary-color" type="color" value="#10b981" aria-label="Primary color"></div>
+                    <span class="color-value" id="setting-primary-value">#10B981</span>
+                </div>
+            </div>
+            <div class="color-setting">
+                <span>Secondary</span>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <div class="color-bar"><input id="setting-secondary-color" type="color" value="#3b82f6" aria-label="Secondary color"></div>
+                    <span class="color-value" id="setting-secondary-value">#3B82F6</span>
+                </div>
+            </div>
+            <div class="color-setting">
+                <span>Tertiary</span>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <div class="color-bar"><input id="setting-tertiary-color" type="color" value="#f59e0b" aria-label="Tertiary color"></div>
+                    <span class="color-value" id="setting-tertiary-value">#F59E0B</span>
+                </div>
+            </div>
         </div>
         <div class="settings-row">
             <label for="setting-font-size"><b>UI Font Size</b> <span id="setting-font-size-value">12px</span></label>
@@ -773,27 +841,27 @@
 <div id="tutorial-backdrop" class="tutorial-backdrop" aria-modal="true">
     <div class="tutorial-card">
         <div class="tutorial-step active" data-step="0">
-            <h2>⛏ Welcome, Miner!</h2>
+            <h2>Welcome, Miner!</h2>
             <p>Mine blocks around your character, collect ores, and bring them back to the surface. Your goal is to go deeper, get stronger, and build a ridiculous mining empire.</p>
         </div>
         <div class="tutorial-step" data-step="1">
-            <h2>🧭 Movement & Mining</h2>
+            <h2>Movement & Mining</h2>
             <p>Use <b>WASD</b> or the arrow keys to move. Walk into solid blocks to mine them. Click nearby villagers on the surface to accept and turn in quests.</p>
         </div>
         <div class="tutorial-step" data-step="2">
-            <h2>🎒 Backpack & Selling</h2>
-            <p>Your backpack has limited slots. Use the inventory controls to reserve items for crafting, then sell your non-reserved ores when you are ready.</p>
+            <h2>Interacting with NPCs</h2>
+            <p>There is a NPC next to you, it is the Starter NPC, which gives exclusive rewards. Click/Approach him, and click on the quests on the left to accept them!</p>
         </div>
         <div class="tutorial-step" data-step="3">
-            <h2>🌳 Skill Tree</h2>
+            <h2>Skill Tree</h2>
             <p>Level up by mining to earn <b>Skill Points</b>. Open the Stats tab and click available nodes. A node can only be purchased when every requirement in <code>skills.js</code> is at least level 1.</p>
         </div>
         <div class="tutorial-step" data-step="4">
-            <h2>🏆 Achievements</h2>
+            <h2>Achievements</h2>
             <p>Achievements track milestones like depth, mining, shiny finds, quests, and skill progression. They unlock automatically as you play.</p>
         </div>
         <div class="tutorial-step" data-step="5">
-            <h2>🎵 Your Music</h2>
+            <h2>Your Music</h2>
             <p>Open Settings to upload an audio file from your device and play it while you mine. The browser keeps the selected track for this session; your save file never uploads it anywhere.</p>
         </div>
         <div class="tutorial-actions">
@@ -811,7 +879,7 @@
 <!-- Debug Menu Modal -->
 <div id="debug-modal">
     <div class="modal-content">
-        <div class="card-title" style="margin:0; font-size:1.1em; color:#f59e0b;">🛠 Debug Menu</div>
+        <div class="card-title" style="margin:0; font-size:1.1em; color:var(--tertiary-color);">Debug Menu</div>
         <div style="display:flex; flex-direction:column; gap:8px; font-size:0.85em;">
             <label>Money ($):
                 <input type="number" id="dbg-money" style="width:100%; padding:4px; background:var(--bg-box); color:var(--text-main); border:1px solid var(--border-color); border-radius:4px;">
@@ -841,6 +909,11 @@
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.toggle('active', content.id === tabId);
         });
+    };
+
+    window.switchLogSection = function(paneId) {
+        document.querySelectorAll('.log-pane').forEach(p => p.classList.toggle('active', p.id === paneId));
+        document.querySelectorAll('.log-subtab').forEach(b => b.classList.toggle('active', b.getAttribute('data-log') === paneId));
     };
 
     function closePopup() {
@@ -900,11 +973,11 @@
     const HOUSE_HEIGHT = 5;
     const AUTO_TOOL_KEYS = ['mega_nuke', 'void_bomb', 'nuke', 'mega_dynamite', 'dynamite', 'void_charge'];
     const QUEST_POOL = [
-        { oreKey: 'dirt', amountKg: 20, reward: { gem: 1 }, title: 'Soil Sample', description: 'Bring in a cart of loose soil.' },
-        { oreKey: 'gravel', amountKg: 18, reward: { gem: 1 }, title: 'Rubble Run', description: 'The roads need stone and gravel patchwork.' },
-        { oreKey: 'soft_rock', amountKg: 14, reward: { gem: 2 }, title: 'Stone Haul', description: 'A local mason needs soft rock for a wall.' },
-        { oreKey: 'limestone', amountKg: 12, reward: { gem: 2 }, title: 'Quarry Favor', description: 'Mine clean limestone for a new foundation.' },
-        { oreKey: 'geode_fragment', amountKg: 6, reward: { gem: 3 }, title: 'Crystal Errand', description: 'A collector wants raw crystal fragments.' },
+        { oreKey: 'dirt', amountKg: 20, reward: { item: 'repair_kit', amount: 1 }, title: 'Soil Sample', description: 'Bring in a cart of loose soil.' },
+        { oreKey: 'gravel', amountKg: 18, reward: { item: 'nuke', amount: 1 }, title: 'Rubble Run', description: 'The roads need stone and gravel patchwork.' },
+        { oreKey: 'soft_rock', amountKg: 14, reward: { item: 'repair_kit', amount: 1 }, title: 'Stone Haul', description: 'A local mason needs soft rock for a wall.' },
+        { oreKey: 'limestone', amountKg: 12, reward: { item: 'nuke', amount: 1 }, title: 'Quarry Favor', description: 'Mine clean limestone for a new foundation.' },
+        { oreKey: 'geode_fragment', amountKg: 6, reward: { ore: 'geode_fragment', amount: 2 }, title: 'Crystal Errand', description: 'A collector wants raw crystal fragments.' },
         { oreKey: 'deep_quartz', amountKg: 8, reward: { ore: 'magma_crystal', amount: 1 }, title: 'Twinkling Trade', description: 'Bring back a useful crystal vein for a rare trade.' },
         { oreKey: 'obsidian_slate', amountKg: 5, reward: { item: 'nuke', amount: 1 }, title: 'Dark Cut', description: 'A miner needs a slate sample and will pay in explosives.' }
     ];
@@ -938,6 +1011,7 @@
         dailyShopItems: [],
         achievements: {},
         stats: { mined: 0, shinyMined: 0, questsCompleted: 0, maxDepth: 0, totalSold: 0 },
+        tutorialQuest: { stage: 0, completed: false },
         tutorialDone: false
     };
 
@@ -1008,6 +1082,7 @@
 
     function showNpcQuest(npc) {
         if (!npc) return;
+        if (npc.tutorial) { interactWithTutorialGuide(npc); return; }
         if (player.quest && player.quest.giverId === npc.id) {
             announce(`[${npc.name}] Quest: ${player.quest.title}`);
             addLog(`NPC ${npc.name}: "${player.quest.description}" (${player.quest.amountKg}kg of ${ORES[player.quest.oreKey]?.name || player.quest.oreKey})`, 'info');
@@ -1107,7 +1182,10 @@
 
     function spawnQuestGivers() {
         if (!Array.isArray(player.questGivers)) player.questGivers = [];
-        if (player.questGivers.length > 0) return;
+        if (!player.questGivers.some(g => g.tutorial)) {
+            player.questGivers.push({ id: 'tutorial-guide', x: 9, y: 0, name: 'Guide', title: 'Mining Guide', tutorial: true });
+        }
+        if (player.questGivers.some(g => !g.tutorial)) return;
         const count = 4 + Math.floor(Math.random() * 3);
         for (let i = 0; i < count; i++) {
             const x = Math.floor(Math.random() * 240) - 120;
@@ -1124,7 +1202,45 @@
         return null;
     }
 
+    const TUTORIAL_QUEST_STAGES = [
+        { title: 'First Steps', description: 'Mine 3 blocks and learn how mining works.', goalType: 'mineBlocks', amount: 3, reward: { sp: 1 } },
+        { title: 'Fill the Pack', description: 'Collect 8kg of dirt. Keep your inventory organized.', goalType: 'collectWeight', oreKey: 'dirt', amount: 8, reward: { item: 'repair_kit', amount: 1 } },
+        { title: 'Into the Shallows', description: 'Reach depth 25, but stay in the safe upper mine.', goalType: 'reachDepth', amount: 25, reward: { power: 1 } },
+        { title: 'Know Your Way Back', description: 'Reach depth 50, then return to the Guide at the surface.', goalType: 'reachDepth', amount: 50, reward: { capacity: 10 } },
+        { title: 'The Final Lesson', description: 'Reach depth 100 and return to the Guide. This is the deepest point required by the tutorial.', goalType: 'reachDepth', amount: 100, reward: { item: 'strafe_boots', amount: 1 }, final: true }
+    ];
+
+    function getTutorialStage() {
+        if (!player.tutorialQuest) player.tutorialQuest = { stage: 0, completed: false };
+        return TUTORIAL_QUEST_STAGES[Math.min(player.tutorialQuest.stage, TUTORIAL_QUEST_STAGES.length - 1)];
+    }
+
+    function isTutorialQuestComplete(q) {
+        if (!q) return false;
+        if (q.goalType === 'mineBlocks') return (player.stats?.mined || 0) >= q.amount + (q.startValue || 0);
+        if (q.goalType === 'collectWeight') return getCraftIngredientCount(q.oreKey) >= q.amount;
+        if (q.goalType === 'reachDepth') return (player.stats?.maxDepth || 0) >= q.amount;
+        return false;
+    }
+
+    function getTutorialQuestProgress(q) {
+        if (!q) return { current: 0, max: 1 };
+        if (q.goalType === 'mineBlocks') return { current: Math.max(0, (player.stats?.mined || 0) - (q.startValue || 0)), max: q.amount };
+        if (q.goalType === 'collectWeight') return { current: getCraftIngredientCount(q.oreKey), max: q.amount };
+        if (q.goalType === 'reachDepth') return { current: Math.min(player.stats?.maxDepth || 0, q.amount), max: q.amount };
+        return { current: 0, max: q.amount || 1 };
+    }
+
+    function createTutorialQuest(npcKey) {
+        const stage = getTutorialStage();
+        const stageIndex = player.tutorialQuest.stage;
+        const q = { ...stage, npcX: npcKey.x, npcY: npcKey.y, npcName: npcKey.name, giverId: npcKey.id, tutorial: true, stage: stageIndex + 1, accepted: false };
+        if (stage.goalType === 'mineBlocks') q.startValue = player.stats?.mined || 0;
+        return q;
+    }
+
     function createQuestForNpc(npcKey) {
+        if (npcKey.tutorial) return createTutorialQuest(npcKey);
         const seed = Math.abs(pseudoNoise(npcKey.x * 0.17, npcKey.y * 0.13));
         const options = QUEST_POOL.slice().sort((a, b) => (pseudoNoise(seed + a.amountKg, a.reward?.gem || 0) - pseudoNoise(seed + b.amountKg, b.reward?.gem || 0)));
         const pick = options[Math.floor(seed * options.length)] || options[0];
@@ -1147,6 +1263,7 @@
 
     function turnInQuest() {
         if (!player.quest) return false;
+        if (player.quest.tutorial) return turnInTutorialQuest();
         const q = player.quest;
         const needed = q.amountKg;
         const oreKey = q.oreKey;
@@ -1232,12 +1349,89 @@
         return { type: 'air', houseVariant: 'interior', solid: false, revealed: true, hp: 1, maxHp: 1 };
     }
 
+    function grantTutorialReward(reward) {
+        if (!reward) return;
+        if (reward.sp) player.sp = (player.sp || 0) + reward.sp;
+        if (reward.power) player.basePower += reward.power;
+        if (reward.capacity) player.baseCapacity += reward.capacity;
+        if (reward.item) {
+            player.craftedItems[reward.item] = (player.craftedItems[reward.item] || 0) + (reward.amount || 1);
+            if (reward.item === 'strafe_boots') {
+                player.unlockedNodes = player.unlockedNodes || { root: 1 };
+                player.unlockedNodes.straf = Math.max(1, player.unlockedNodes.straf || 0);
+            }
+        }
+    }
+
+    function getTutorialRewardSummary(reward = {}) {
+        const parts = [];
+        if (reward.sp) parts.push(`+${reward.sp} Skill Point`);
+        if (reward.power) parts.push(`+${reward.power} Pickaxe Power`);
+        if (reward.capacity) parts.push(`+${reward.capacity} Capacity`);
+        if (reward.item) parts.push(`${reward.amount || 1} ${reward.item.replace(/_/g, ' ')}`);
+        return parts.join(', ') || 'No reward';
+    }
+
+    function interactWithTutorialGuide(giver) {
+        if (player.tutorialQuest?.completed) {
+            announce('Guide: You have completed the mining tutorial.');
+            addLog('The Guide has no more lessons for you.', 'info');
+            return true;
+        }
+        if (player.quest && !player.quest.tutorial) {
+            abandonCurrentQuest('Tutorial lesson started.');
+        }
+        if (player.quest?.tutorial && player.quest.giverId === giver.id) {
+            const progress = getTutorialQuestProgress(player.quest);
+            if (progress.current >= progress.max) return turnInTutorialQuest();
+            announce(`Lesson ${player.quest.stage}: ${progress.current}/${progress.max}`);
+            updateUI();
+            return true;
+        }
+        const q = createTutorialQuest(giver);
+        player.questPrompt = q;
+        announce(`Guide: Lesson ${q.stage} — ${q.title}`);
+        addLog(`Guide offers lesson ${q.stage}/5: ${q.description}`, 'info');
+        updateUI();
+        return true;
+    }
+
+    function turnInTutorialQuest() {
+        const q = player.quest;
+        if (!q?.tutorial) return false;
+        const progress = getTutorialQuestProgress(q);
+        if (progress.current < progress.max) {
+            announce(`Lesson ${q.stage} is not complete yet.`);
+            return false;
+        }
+        grantTutorialReward(q.reward);
+        player.stats.questsCompleted = (player.stats.questsCompleted || 0) + 1;
+        const completedStage = q.stage;
+        const rewardText = getTutorialRewardSummary(q.reward);
+        player.quest = null;
+        player.questPrompt = null;
+        player.tutorialQuest.stage = completedStage;
+        if (completedStage >= TUTORIAL_QUEST_STAGES.length) {
+            player.tutorialQuest.completed = true;
+            announce('Tutorial complete. Strafe Boots acquired!');
+            addLog(`Mining tutorial complete. Final reward: ${rewardText}.`, 'info');
+        } else {
+            announce(`Lesson ${completedStage} complete. Reward: ${rewardText}`);
+            addLog(`Tutorial lesson ${completedStage}/5 complete. Reward: ${rewardText}.`, 'info');
+        }
+        updateUI();
+        saveGame();
+        return true;
+    }
+
     function interactWithNearbyVillager() {
         const giver = getNearbyQuestGiver();
         if (!giver) {
             addLog('No quest giver nearby.', 'error');
             return false;
         }
+
+        if (giver.tutorial) return interactWithTutorialGuide(giver);
 
         if (player.questPrompt && player.questPrompt.giverId === giver.id) {
             const q = player.questPrompt.quest;
@@ -1399,9 +1593,10 @@
         const isSufficient = ownedAmount >= requiredAmount;
         const label = ingredientKey.charAt(0).toUpperCase() + ingredientKey.slice(1);
 
+        const imageHtml = ORES[ingredientKey] ? `<img src="assets/${ingredientKey}.png" alt="${label}" onerror="this.style.display='none'">` : '';
         return `
-            <span class="craft-cost-chip ${isSufficient ? 'cost-sufficient' : 'cost-insufficient'}">
-                ${label}: ${ownedAmount.toFixed(1)}/${requiredAmount}
+            <span class="craft-cost-chip craft-ingredient ${isSufficient ? 'cost-sufficient' : 'cost-insufficient'}">
+                ${imageHtml}<span>${label}: ${ownedAmount.toFixed(1)}/${requiredAmount}</span>
             </span>
         `;
     }
@@ -1588,7 +1783,7 @@
                 },
                 {
                     id: 'ds_luck',
-                    name: '🍀 Clover Charm',
+                    name: ' Clover Charm',
                     desc: '+1 Permanent Luck Boost',
                     type: 'stat',
                     stat: 'luck',
@@ -1622,7 +1817,7 @@
             const w2 = parseFloat((1 + rnd() * 3).toFixed(1));
             items.push({
                 id: 'ds_ore2',
-                name: `💎 ${o2.name} (${w2}kg)`,
+                name: ` ${o2.name} (${w2}kg)`,
                 desc: `Deep cavern mineral bundle`,
                 type: 'ore',
                 oreKey: o2Key,
@@ -1746,13 +1941,16 @@
             return `
                 <div class="shop-item" style="align-items:flex-start; flex-direction:column;">
                     <div style="display:flex; justify-content:space-between; width:100%;">
-                        <div class="shop-info">
-                            <div class="shop-title">${recipe.name}</div>
-                            <div class="shop-desc">${recipe.description}</div>
+                        <div style="display:flex;gap:8px;align-items:center;min-width:0">
+                            ${(() => { const firstOre = Object.keys(recipe.cost || {}).find(k => ORES[k]); return firstOre ? `<img class="craft-result-icon" src="assets/${firstOre}.png" alt="${ORES[firstOre].name}" onerror="this.style.display='none'">` : ''; })()}
+                            <div class="shop-info">
+                                <div class="shop-title">${recipe.name}</div>
+                                <div class="shop-desc">${recipe.description}</div>
+                            </div>
                         </div>
                         <div style="display:flex; gap:6px; align-items:flex-start;">
                             <button class="btn btn-action" data-craft-id="${recipeId}" ${disabled ? 'disabled' : ''}>Craft</button>
-                            <button class="reserve-btn" data-pin-id="${recipeId}">${pinned ? '📌' : '📍'}</button>
+                            <button class="reserve-btn" data-pin-id="${recipeId}">${pinned ? 'Pin' : 'Unpin'}</button>
                         </div>
                     </div>
                     <div class="craft-cost-grid">${costGrid}</div>
@@ -1814,13 +2012,26 @@
         const container = document.getElementById('quick-quest');
         if (!container) return;
 
-        if (player.questPrompt) {
+        if (player.questPrompt?.tutorial) {
+            const q = player.questPrompt;
+            const progress = getTutorialQuestProgress(q);
+            container.innerHTML = `<div class="quest-card"><div class="quest-card-title">Guide Lesson ${q.stage}/5: ${q.title}</div><div class="quest-card-desc" id="quest-desc-btn"><strong>Goal:</strong> ${q.description}<br><strong>Progress:</strong> ${progress.current} / ${progress.max}<br><span style="color:var(--primary-color);font-weight:bold;display:block;margin-top:4px;">Click to accept</span></div><div class="quest-card-progress">Reward: ${getTutorialRewardSummary(q.reward)}</div></div>`;
+            const btn = document.getElementById('quest-desc-btn');
+            if (btn) btn.onclick = () => { const giver = player.questGivers.find(g => g.id === q.giverId); if (giver) interactWithTutorialGuide(giver); };
+        } else if (player.quest?.tutorial) {
+            const q = player.quest;
+            const progress = getTutorialQuestProgress(q);
+            const done = progress.current >= progress.max;
+            container.innerHTML = `<div class="quest-card"><div class="quest-card-title">Guide Lesson ${q.stage}/5: ${q.title}</div><div class="quest-card-desc" id="quest-desc-btn"><strong>Task:</strong> ${q.description}<br><strong>Progress:</strong> ${progress.current} / ${progress.max}<br><span style="color:${done ? 'var(--primary-color)' : 'var(--secondary-color)'};font-weight:bold;display:block;margin-top:4px;">${done ? 'Return to the Guide to claim your reward' : 'Keep going'}</span></div><div class="quest-card-progress">Reward: ${getTutorialRewardSummary(q.reward)}</div></div>`;
+            const btn = document.getElementById('quest-desc-btn');
+            if (btn) btn.onclick = () => { const giver = player.questGivers.find(g => g.id === q.giverId); if (giver && done) turnInTutorialQuest(); };
+        } else if (player.questPrompt) {
             const q = player.questPrompt.quest;
             const ore = ORES[q.oreKey];
             const oreDesc = ore ? ore.desc : 'Standard mining block.';
             container.innerHTML = `
                 <div class="quest-card">
-                    <div class="quest-card-title">📜 Quest Offered: ${q.title}</div>
+                    <div class="quest-card-title">Quest Offered: ${q.title}</div>
                     <div class="quest-card-desc" id="quest-desc-btn" title="Click to Accept Quest">
                         <strong>Goal:</strong> ${q.description}<br>
                         <strong>Target Block:</strong> ${ore ? ore.name : q.oreKey} — <em>"${oreDesc}"</em><br>
@@ -2062,7 +2273,7 @@
         const listEl = document.getElementById('chest-loot-list');
         listEl.innerHTML = pendingChestLoot.map(item => {
             if (item.type === 'consumable') {
-                return `<div class="inv-item" style="border-color:#f59e0b"><div style="color:#f59e0b; font-weight:bold">${item.label}</div><div>x${item.amount}</div></div>`;
+                return `<div class="inv-item" style="border-color:var(--tertiary-color)"><div style="color:var(--tertiary-color); font-weight:bold">${item.label}</div><div>x${item.amount}</div></div>`;
             }
             const ore = ORES[item.oreKey] || { name: item.oreKey, rarity: 'common' };
             const rarity = getRarity(ore.rarity);
@@ -2140,7 +2351,7 @@
             if (!silent || isImportant) addLog(`${actionPrefix} ${oreData.name}.`, 'action');
         } else {
             player.inventory.push(newItem);
-            if (block.isShiny) addLog(`${autoMode ? 'AUTO COLLECTED' : '✨ SHINY MINED!'} ${oreData.name}`, 'action');
+            if (block.isShiny) addLog(`${autoMode ? 'AUTO COLLECTED' : 'SHINY MINED!'} ${oreData.name}`, 'action');
             else if (!silent || isImportant) addLog(`${actionPrefix} ${oreData.name} (${rarity.name}) - ${weight}kg`, 'action');
         }
 
@@ -2419,7 +2630,7 @@
             tooltip.style.top = `${e.clientY + 12}px`;
             tooltip.style.borderColor = '#8c5a32';
             tooltip.innerHTML = `
-                <div class="tt-title"><span style="color:#f59e0b">Surface Residence</span><span class="tt-badge" style="background:#8c5a32">Structure</span></div>
+                <div class="tt-title"><span style="color:var(--tertiary-color)">Surface Residence</span><span class="tt-badge" style="background:#8c5a32">Structure</span></div>
                 <div>Status: <b>Unbreakable Solid Wall</b></div>
             `;
         } else if (block && block.revealed && block.solid && ORES[block.type]) {
@@ -2441,7 +2652,7 @@
             tooltip.style.top = `${Math.min(window.innerHeight - 150, e.clientY + 12)}px`;
             tooltip.style.borderColor = '#f59e0b';
             tooltip.innerHTML = `
-                <div class="tt-title"><span style="color:#f59e0b">Mineshaft Chest</span><span class="tt-badge" style="background:#f59e0b">RARE LOOT</span></div>
+                <div class="tt-title"><span style="color:var(--tertiary-color)">Mineshaft Chest</span><span class="tt-badge" style="background:#f59e0b">RARE LOOT</span></div>
                 <div>HP: <b>${block.hp}/${block.maxHp}</b></div>
             `;
         } else {
@@ -2470,15 +2681,15 @@
         const active = giver && player.quest && player.quest.giverId === giver.id;
         const bodyX = screenX + 2, bodyY = screenY + 2, size = TILE_SIZE - 4;
 
-        ctx.fillStyle = active ? '#34d399' : '#fbbf24';
+        ctx.fillStyle = giver.tutorial ? 'var(--secondary-color)' : (active ? 'var(--primary-color)' : 'var(--tertiary-color)');
         ctx.fillRect(bodyX, bodyY, size, size);
         ctx.fillStyle = '#1f2937';
         ctx.fillRect(bodyX + 5, bodyY + 7, 4, 4);
         ctx.fillRect(bodyX + size - 9, bodyY + 7, 4, 4);
         ctx.fillRect(bodyX + 7, bodyY + 15, size - 14, 3);
 
-        if (active) {
-            ctx.strokeStyle = '#34d399';
+        if (active || giver.tutorial) {
+            ctx.strokeStyle = giver.tutorial ? 'var(--secondary-color)' : 'var(--primary-color)';
             ctx.lineWidth = 2;
             ctx.strokeRect(bodyX - 2, bodyY - 2, size + 4, size + 4);
         }
@@ -2633,7 +2844,7 @@
             const ore = ORES[item.oreKey] || { name: item.oreKey, rarity: 'common' };
             const rarity = getRarity(ore.rarity);
             const shinyClass = item.isShiny ? 'shiny-item' : '';
-            const reservedTag = item.reservedFor ? `<span style="color:#f59e0b; font-size:0.75em;">[Reserved]</span>` : '';
+            const reservedTag = item.reservedFor ? `<span style="color:var(--tertiary-color); font-size:0.75em;">[Reserved]</span>` : '';
 
             return `
                 <div class="inv-item ${shinyClass}" style="border-color:${rarity.color}">
@@ -2643,7 +2854,7 @@
                     </div>
                     <div style="display:flex; align-items:center; gap:6px;">
                         <span>${item.weight.toFixed(1)}kg</span>
-                        <button class="reserve-btn" onclick="toggleItemReserve(${idx})">${item.reservedFor ? '🔒' : '🔓'}</button>
+                        <button class="reserve-btn" onclick="toggleItemReserve(${idx})">${item.reservedFor ? 'Reserved' : 'Reserve'}</button>
                     </div>
                 </div>
             `;
@@ -2953,18 +3164,13 @@
     };
 
     const ACHIEVEMENTS = [
-        { id:'first_mine', icon:'⛏️', name:'First Swing', desc:'Mine your first ore.', goal:1, get:()=>player.stats.mined },
-        { id:'miner_10', icon:'🪨', name:'Getting Started', desc:'Mine 10 ores.', goal:10, get:()=>player.stats.mined },
-        { id:'miner_100', icon:'💪', name:'Seasoned Miner', desc:'Mine 100 ores.', goal:100, get:()=>player.stats.mined },
-        { id:'depth_50', icon:'🕳️', name:'Going Down', desc:'Reach 50m depth.', goal:50, get:()=>player.stats.maxDepth },
-        { id:'depth_150', icon:'🌋', name:'Deep Caverns', desc:'Reach 150m depth.', goal:150, get:()=>player.stats.maxDepth },
-        { id:'depth_500', icon:'🌑', name:'Into the Deep', desc:'Reach 500m depth.', goal:500, get:()=>player.stats.maxDepth },
-        { id:'shiny', icon:'✨', name:'Shiny!', desc:'Mine a shiny ore.', goal:1, get:()=>player.stats.shinyMined },
-        { id:'quests', icon:'📜', name:'Helpful Hands', desc:'Complete 5 quests.', goal:5, get:()=>player.stats.questsCompleted },
-        { id:'level_5', icon:'⭐', name:'Rising Star', desc:'Reach level 5.', goal:5, get:()=>player.level },
-        { id:'level_10', icon:'🌟', name:'Veteran Miner', desc:'Reach level 10.', goal:10, get:()=>player.level },
-        { id:'skills_5', icon:'🌳', name:'Specialist', desc:'Spend 5 Skill Points in the skill tree.', goal:5, get:()=>Object.entries(player.unlockedNodes || {}).reduce((s,[id,l])=>s+(id==='root'?0:l||0),0) },
-        { id:'skills_10', icon:'🌲', name:'Skill Tree Climber', desc:'Reach 10 purchased skill levels.', goal:10, get:()=>Object.entries(player.unlockedNodes || {}).reduce((s,[id,l])=>s+(id==='root'?0:l||0),0) }
+        { id:'miner', name:'Master Miner', desc:'Mine more and more ores.', tiers:[1,10,25,50,100,250,500,1000], get:()=>player.stats.mined },
+        { id:'depth', name:'Depth Delver', desc:'Reach deeper layers.', tiers:[10,25,50,100,150,250,500,1000], get:()=>player.stats.maxDepth, suffix:'m' },
+        { id:'shiny', name:'Shiny Hunter', desc:'Find increasingly rare shiny ores.', tiers:[1,3,10,25,50,100], get:()=>player.stats.shinyMined },
+        { id:'quests', name:'Quest Veteran', desc:'Complete more mining quests.', tiers:[1,5,10,25,50,100], get:()=>player.stats.questsCompleted },
+        { id:'level', name:'Level Up', desc:'Reach higher miner levels.', tiers:[2,5,10,20,30,50], get:()=>player.level, suffix:' lvl' },
+        { id:'skills', name:'Skill Tree Climber', desc:'Purchase more skill levels.', tiers:[1,5,10,20,30,50], get:()=>Object.entries(player.unlockedNodes || {}).reduce((s,[id,l])=>s+(id==='root'?0:l||0),0) },
+        { id:'sales', name:'Ore Tycoon', desc:'Sell more total ore value.', tiers:[100,1000,10000,50000,100000,500000], get:()=>player.stats.totalSold }
     ];
 
     function showFeatureToast(message) {
@@ -2976,16 +3182,24 @@
         showFeatureToast._timer = setTimeout(()=>el.classList.remove('show'), 2600);
     }
 
+    function getAchievementTier(a) {
+        const value = Math.max(0, Number(a.get()) || 0);
+        let tier = 0;
+        for (let i = 0; i < a.tiers.length; i++) if (value >= a.tiers[i]) tier = i + 1;
+        return { value, tier, maxTier: a.tiers.length, goal: a.tiers[Math.min(tier, a.tiers.length - 1)] };
+    }
+
     function checkAchievements() {
         if (!player.achievements || typeof player.achievements !== 'object') player.achievements = {};
         let changed = false;
         ACHIEVEMENTS.forEach(a => {
-            const progress = Math.max(0, Number(a.get()) || 0);
-            if (!player.achievements[a.id] && progress >= a.goal) {
-                player.achievements[a.id] = Date.now();
+            const info = getAchievementTier(a);
+            const previous = Number(player.achievements[a.id] || 0);
+            if (info.tier > previous) {
+                player.achievements[a.id] = info.tier;
                 changed = true;
-                addLog(`Achievement unlocked: ${a.name}!`, 'info');
-                showFeatureToast(`🏆 Achievement Unlocked: ${a.name}`);
+                addLog(`Achievement tier ${info.tier} unlocked: ${a.name}!`, 'info');
+                showFeatureToast(`🏆 ${a.name} — Tier ${info.tier} unlocked!`);
             }
         });
         if (changed && typeof saveGame === 'function') saveGame();
@@ -2996,19 +3210,26 @@
         const grid = document.getElementById('achievement-grid');
         const summary = document.getElementById('achievement-summary');
         if (!grid) return;
-        const unlockedCount = ACHIEVEMENTS.filter(a => !!player.achievements?.[a.id]).length;
-        if (summary) summary.textContent = `${unlockedCount}/${ACHIEVEMENTS.length}`;
+        const totalTiers = ACHIEVEMENTS.reduce((s,a)=>s+a.tiers.length,0);
+        const unlockedTiers = ACHIEVEMENTS.reduce((s,a)=>s+Math.min(Number(player.achievements?.[a.id]||0),a.tiers.length),0);
+        if (summary) summary.textContent = `${unlockedTiers}/${totalTiers} tiers`;
         grid.innerHTML = ACHIEVEMENTS.map(a => {
-            const value = Math.min(a.goal, Math.max(0, Number(a.get()) || 0));
-            const done = !!player.achievements?.[a.id];
-            const pct = Math.round(value / a.goal * 100);
-            return `<div class="achievement-card ${done ? 'unlocked' : ''}">
-                <div class="achievement-icon">${done ? a.icon : '🔒'}</div>
+            const info = getAchievementTier(a);
+            const unlocked = Number(player.achievements?.[a.id] || 0);
+            const nextIndex = Math.min(unlocked, a.tiers.length - 1);
+            const nextGoal = a.tiers[nextIndex];
+            const prevGoal = unlocked > 0 ? a.tiers[unlocked - 1] : 0;
+            const progress = unlocked >= a.tiers.length ? 100 : Math.round(Math.max(0, info.value - prevGoal) / Math.max(1, nextGoal - prevGoal) * 100);
+            const currentText = unlocked >= a.tiers.length ? `MAX • ${info.value}${a.suffix||''}` : `${info.value}${a.suffix||''} / ${nextGoal}${a.suffix||''}`;
+            return `<div class="achievement-card ${unlocked ? 'unlocked' : ''}">
+                <div class="achievement-icon">${unlocked ? a.icon : 'Reserved'}</div>
                 <div style="flex:1">
                     <div class="achievement-name">${a.name}</div>
                     <div class="achievement-desc">${a.desc}</div>
-                    <div class="achievement-progress"><div style="width:${pct}%"></div></div>
-                    <div class="achievement-status">${done ? 'UNLOCKED' : `${value}/${a.goal}`}</div>
+                    <div class="achievement-tier">Tier ${Math.min(unlocked + 1, a.tiers.length)} / ${a.tiers.length}${unlocked ? ` • ${unlocked} completed` : ''}</div>
+                    <div class="achievement-progress"><div style="width:${progress}%"></div></div>
+                    <div class="achievement-status">${currentText}</div>
+                    <div class="achievement-reward">${unlocked >= a.tiers.length ? 'Fully upgraded' : `Next milestone: ${nextGoal}${a.suffix||''}`}</div>
                 </div>
             </div>`;
         }).join('');
@@ -3023,8 +3244,25 @@
         const fsv = document.getElementById('setting-font-size-value');
         if (fs) fs.value = size;
         if (fsv) fsv.textContent = `${size}px`;
-        const theme = document.getElementById('setting-theme');
-        if (theme) theme.value = settings.theme || 'dark';
+        const darkMode = document.getElementById('setting-dark-mode');
+        const lightMode = document.getElementById('setting-light-mode');
+        if (darkMode) darkMode.style.borderColor = settings.theme === 'dark' ? 'var(--primary-color)' : 'var(--border-color)';
+        if (lightMode) lightMode.style.borderColor = settings.theme === 'light' ? 'var(--primary-color)' : 'var(--border-color)';
+
+        const colors = [
+            ['primaryColor','setting-primary-color','setting-primary-value','--primary-color'],
+            ['secondaryColor','setting-secondary-color','setting-secondary-value','--secondary-color'],
+            ['tertiaryColor','setting-tertiary-color','setting-tertiary-value','--tertiary-color']
+        ];
+        colors.forEach(([key,id,valueId,cssVar]) => {
+            const value = settings[key] || getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
+            document.documentElement.style.setProperty(cssVar, value);
+            const input = document.getElementById(id);
+            const label = document.getElementById(valueId);
+            if (input) input.value = value;
+            if (label) label.textContent = value.toUpperCase();
+        });
+
         const vol = Math.max(0, Math.min(100, Number(settings.musicVolume ?? 50)));
         const volume = document.getElementById('music-volume');
         const volumeLabel = document.getElementById('music-volume-value');
@@ -3076,16 +3314,37 @@
     }
 
     function initFeatureSystems() {
-        player.settings = { theme:'dark', fontSize:12, musicVolume:50, musicLoop:true, ...(player.settings || {}) };
+        player.settings = {
+            theme:'dark', fontSize:12, musicVolume:50, musicLoop:true,
+            primaryColor:'#10b981', secondaryColor:'#3b82f6', tertiaryColor:'#f59e0b',
+            ...(player.settings || {})
+        };
         if (!player.stats) player.stats = { mined:0, shinyMined:0, questsCompleted:0, maxDepth:0, totalSold:0 };
-        if (!player.achievements) player.achievements = {};
+        if (!player.achievements || typeof player.achievements !== 'object') player.achievements = {};
+        Object.keys(player.achievements).forEach(k => { player.achievements[k] = Math.max(0, Number(player.achievements[k]) || 0); });
         applySettings();
 
         const theme = document.getElementById('setting-theme');
         const font = document.getElementById('setting-font-size');
         const volume = document.getElementById('music-volume');
         const loop = document.getElementById('music-loop');
-        if (theme) theme.onchange = e => { player.settings.theme=e.target.value; applySettings(); saveGame(); };
+        const darkMode = document.getElementById('setting-dark-mode');
+        const lightMode = document.getElementById('setting-light-mode');
+        if (darkMode) darkMode.onclick = () => { player.settings.theme='dark'; applySettings(); saveGame(); };
+        if (lightMode) lightMode.onclick = () => { player.settings.theme='light'; applySettings(); saveGame(); };
+
+        [
+            ['setting-primary-color','primaryColor'],
+            ['setting-secondary-color','secondaryColor'],
+            ['setting-tertiary-color','tertiaryColor']
+        ].forEach(([id,key]) => {
+            const input = document.getElementById(id);
+            if (input) input.oninput = e => {
+                player.settings[key] = e.target.value;
+                applySettings();
+                saveGame();
+            };
+        });
         if (font) font.oninput = e => { player.settings.fontSize=Number(e.target.value); applySettings(); saveGame(); };
         if (volume) volume.oninput = e => {
             player.settings.musicVolume=Number(e.target.value);
@@ -3145,6 +3404,15 @@
         document.getElementById('val-coins').innerText = `$${player.coins.toFixed(2)}`;
         document.getElementById('val-depth').innerText = `${Math.max(0, player.y)}m`;
         document.getElementById('val-level').innerText = `Lvl ${player.level}`;
+        const xpNow = Math.max(0, Number(player.xp) || 0);
+        const xpNext = Math.max(1, Number(player.xpNext) || 100);
+        const xpPct = Math.min(100, Math.max(0, xpNow / xpNext * 100));
+        const xpCurrentEl = document.getElementById('xp-current');
+        const xpNeededEl = document.getElementById('xp-needed');
+        const xpFillEl = document.getElementById('xp-fill');
+        if (xpCurrentEl) xpCurrentEl.textContent = `${xpNow} XP`;
+        if (xpNeededEl) xpNeededEl.textContent = `/ ${xpNext} XP`;
+        if (xpFillEl) xpFillEl.style.width = `${xpPct}%`;
         document.getElementById('val-sp').innerText = `${player.sp}`;
         posDisplay.innerText = `X: ${player.x}, Y: ${player.y}`;
 
@@ -3208,6 +3476,7 @@
     }
 
     loadGame();
+    player.tutorialQuest = player.tutorialQuest || { stage: 0, completed: false };
     initFeatureSystems();
     spawnQuestGivers();
     revealLoadedArea(player.x, player.y);
