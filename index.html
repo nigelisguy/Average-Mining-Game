@@ -293,8 +293,19 @@
         .tab-btn.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); background-color: var(--bg-sidebar); }
         
         .main-tab-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; min-height: 0; }
-        .tab-content { display: none; padding: 12px; flex-direction: column; gap: 12px; }
+        .tab-content { display: none; padding: 10px; flex-direction: column; gap: 10px; flex: 1; min-height: 0; height: 100%; }
         .tab-content.active { display: flex; }
+
+        .tab-content#tab-logs, .tab-content#tab-achievements {
+            padding: 8px 10px;
+        }
+        .tab-content#tab-logs .card, .tab-content#tab-achievements .card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            margin: 0;
+        }
 
         .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; }
         .card-title { font-size: 1em; font-weight: bold; color: var(--primary-color); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
@@ -314,9 +325,9 @@
         .btn-action { background: var(--secondary-color); }
         .btn-danger { background: #ef4444; }
 
-        .index-grid { display: flex; flex-direction: column; gap: 6px; max-height: 400px; overflow-y: auto; }
-        .index-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-box); padding: 6px 10px; border-radius: 6px; border-left: 4px solid #475569; }
-        .index-item.unseen { opacity: 0.4; filter: grayscale(1); }
+        .index-grid { display: flex; flex-direction: column; gap: 4px; flex: 1; overflow-y: auto; padding-right: 4px; min-height: 0; }
+        .index-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-box); padding: 6px 8px; border-radius: 6px; border-left: 4px solid #475569; gap: 8px; }
+        .index-item.unseen { opacity: 0.55; filter: grayscale(0.85); }
         .index-info { display: flex; flex-direction: column; gap: 2px; }
         .index-title { font-weight: bold; font-size: 0.9em; display: flex; align-items: center; gap: 6px; }
         .index-counts { font-size: 0.75em; color: var(--text-muted); }
@@ -450,13 +461,14 @@
         .tree-legend { display:flex; gap:8px; flex-wrap:wrap; margin-top:7px; font-size:.72em; color:var(--text-muted); }
         .tree-legend span { display:inline-flex; align-items:center; gap:4px; }
         .tree-dot { width:9px; height:9px; border-radius:50%; border:1px solid currentColor; display:inline-block; }
-        .achievement-grid { display:grid; grid-template-columns:1fr; gap:7px; max-height:480px; overflow:auto; }
+        .achievement-grid { display: flex; flex-direction: column; gap: 6px; flex: 1; overflow-y: auto; padding-right: 4px; min-height: 0; }
         .achievement-card {
             background:var(--bg-box); border:1px solid var(--border-color); border-radius:7px;
-            padding:9px; display:flex; gap:9px; align-items:flex-start;
+            padding:8px 10px; display:flex; gap:10px; align-items:center;
         }
         .achievement-card.unlocked { border-color:var(--tertiary-color); box-shadow:0 0 10px rgba(245,158,11,.12); }
-        .achievement-icon { font-size:23px; width:30px; text-align:center; }
+        .achievement-icon { font-size:20px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:var(--bg-item); border-radius:6px; border:1px solid var(--border-color); flex-shrink:0; }
+        .achievement-card:not(.unlocked) .achievement-icon { opacity:0.45; filter:grayscale(1); }
         .achievement-name { font-weight:800; color:var(--text-title); }
         .achievement-desc { color:var(--text-muted); font-size:.78em; margin-top:2px; line-height:1.25; }
         .achievement-progress { margin-top:5px; height:5px; background:var(--bg-item); border-radius:3px; overflow:hidden; }
@@ -472,7 +484,7 @@
         .log-subtab { border:1px solid var(--border-color); background:var(--bg-box); color:var(--text-main); border-radius:6px; padding:6px 10px; cursor:pointer; font-weight:700; font-size:.78em; }
         .log-subtab.active { border-color:var(--primary-color); color:var(--primary-color); }
         .log-pane { display:none; }
-        .log-pane.active { display:block; }
+        .log-pane.active { display:flex; flex-direction:column; flex:1; min-height:0; }
         .craft-ingredient { display:inline-flex; align-items:center; gap:5px; padding:4px 7px; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-box); }
         .craft-ingredient img { width:22px; height:22px; object-fit:contain; image-rendering:auto; }
         .craft-result-icon { width:38px; height:38px; object-fit:contain; border-radius:6px; background:var(--bg-box); border:1px solid var(--border-color); }
@@ -720,10 +732,7 @@
                         <button class="log-subtab" data-log="log-museum" onclick="switchLogSection('log-museum')">Museum</button>
                     </div>
                     <div id="log-index" class="log-pane active">
-                        <details open>
-                            <summary style="font-size:1em;font-weight:bold;color:var(--primary-color);">Block Catalog & Bestiary</summary>
-                            <div id="index-grid" class="index-grid" style="margin-top:6px;"></div>
-                        </details>
+                        <div id="index-grid" class="index-grid"></div>
                     </div>
                     <div id="log-museum" class="log-pane">
                         <div class="card-title">Museum Exhibition</div>
@@ -736,9 +745,7 @@
                             </div>
                         </div>
                         <div class="card-title" style="margin-top:10px">Collection Vault (&gt;UR Rarities)</div>
-                        <div id="vault-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
-                    </div>
-
+                        <div id="vault-list" style="display:flex;flex-direction:column;gap:6px;flex:1;overflow-y:auto"></div>
                     </div>
                 </div>
             </div>
@@ -769,6 +776,7 @@
         <details style="position: relative;">
             <summary class="floating-circle-btn" style="list-style: none;" title="Lower Left Options">⚡</summary>
             <div style="position: absolute; bottom: 46px; left: 0; display: flex; flex-direction: column; gap: 6px; background: var(--bg-card); padding: 6px; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                <button class="floating-circle-btn" id="btn-toggle-25d" title="Toggle 2.5D / 2D Visual Mode" style="border-color: var(--primary-color);">3D</button>
                 <button class="floating-circle-btn" id="btn-return-surface" title="Return to Surface">Return</button>
                 <button class="floating-circle-btn" id="btn-open-log" title="Action & Error Log">Log</button>
             </div>
@@ -840,6 +848,10 @@
         <div class="settings-row inline">
             <label for="music-loop"><b>Loop Track</b></label>
             <input id="music-loop" type="checkbox" checked>
+        </div>
+        <div class="settings-row inline">
+            <label for="setting-25d-mode"><b>2.5D / 3D Visuals</b></label>
+            <input id="setting-25d-mode" type="checkbox" checked>
         </div>
         <div style="display:flex;gap:6px;">
             <button class="btn" id="btn-replay-tutorial" style="flex:1;">Tutorial</button>
@@ -1050,6 +1062,7 @@
         tutorialDone: false
     };
 
+    let is25DMode = true;
     let worldMap = {};
     let imageCache = {};
     let pendingChestLoot = [];
@@ -2582,14 +2595,21 @@
         if (didWork) updateUI();
     }
 
-    canvas.addEventListener('click', (e) => {
+    function getTileFromScreenCoords(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        const mx = clientX - rect.left;
+        const my = clientY - rect.top;
+        const effectiveMY = is25DMode ? (my + 3) : my;
+
         const offsetX = canvas.width / 2 - (player.x + 0.5) * TILE_SIZE;
         const offsetY = canvas.height / 2 - (player.y + 0.5) * TILE_SIZE;
         const worldX = Math.floor((mx - offsetX) / TILE_SIZE);
-        const worldY = Math.floor((my - offsetY) / TILE_SIZE);
+        const worldY = Math.floor((effectiveMY - offsetY) / TILE_SIZE);
+        return { worldX, worldY };
+    }
 
+    canvas.addEventListener('click', (e) => {
+        const { worldX, worldY } = getTileFromScreenCoords(e.clientX, e.clientY);
         const npc = getNpcAt(worldX, worldY);
         if (npc) showNpcQuest(npc);
     });
@@ -2654,12 +2674,7 @@
     window.addEventListener('keyup', e => { keyState[e.key.toLowerCase()] = false; });
 
     canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-        const offsetX = canvas.width / 2 - (player.x + 0.5) * TILE_SIZE;
-        const offsetY = canvas.height / 2 - (player.y + 0.5) * TILE_SIZE;
-        const worldX = Math.floor((mx - offsetX) / TILE_SIZE);
-        const worldY = Math.floor((my - offsetY) / TILE_SIZE);
+        const { worldX, worldY } = getTileFromScreenCoords(e.clientX, e.clientY);
 
         const npc = getNpcAt(worldX, worldY);
         if (npc) {
@@ -2765,6 +2780,8 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ensureLoadedArea(player.x, player.y);
 
+        const DEPTH = is25DMode ? 6 : 0;
+
         const offsetX = canvas.width / 2 - (player.x + 0.5) * TILE_SIZE;
         const offsetY = canvas.height / 2 - (player.y + 0.5) * TILE_SIZE;
 
@@ -2785,9 +2802,19 @@
                         if (airImg) ctx.drawImage(airImg, screenX, screenY, TILE_SIZE, TILE_SIZE);
                         else { ctx.fillStyle = '#7cc9ff'; ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE); }
                     } else {
-                        const fogImg = getFogTexture(y);
-                        if (fogImg) ctx.drawImage(fogImg, screenX, screenY, TILE_SIZE, TILE_SIZE);
-                        else { ctx.fillStyle = '#1e1b18'; ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE); }
+                        if (DEPTH > 0) {
+                            ctx.fillStyle = '#100f0d';
+                            ctx.fillRect(screenX, screenY + TILE_SIZE - DEPTH, TILE_SIZE, DEPTH);
+                            const fogImg = getFogTexture(y);
+                            if (fogImg) ctx.drawImage(fogImg, screenX, screenY - DEPTH, TILE_SIZE, TILE_SIZE);
+                            else { ctx.fillStyle = '#1e1b18'; ctx.fillRect(screenX, screenY - DEPTH, TILE_SIZE, TILE_SIZE); }
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+                            ctx.fillRect(screenX, screenY - DEPTH, TILE_SIZE, 1);
+                        } else {
+                            const fogImg = getFogTexture(y);
+                            if (fogImg) ctx.drawImage(fogImg, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                            else { ctx.fillStyle = '#1e1b18'; ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE); }
+                        }
                     }
                 } else if (block.type === 'air' || block.type === 'sky') {
                     const airImg = getAirTexture(y);
@@ -2797,57 +2824,116 @@
                         ctx.fillStyle = (block.houseVariant === 'interior') ? '#f2e4c6' : (y < 0 ? '#7cc9ff' : '#0f172a');
                         ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
                     }
+                    if (DEPTH > 0 && y >= 0) {
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                        ctx.fillRect(screenX, screenY, TILE_SIZE, 3);
+                    }
                 } else if (block.type.startsWith('house_')) {
                     const house = getSurfaceHouseKey(x);
                     const houseImg = getHouseImage();
 
                     if (house && houseImg && houseImg.loaded && x === house.left && y === house.roofY) {
-                        ctx.drawImage(houseImg.img, screenX, screenY, HOUSE_WIDTH * TILE_SIZE, (HOUSE_HEIGHT + 1) * TILE_SIZE);
+                        if (DEPTH > 0) {
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                            ctx.fillRect(screenX, screenY + (HOUSE_HEIGHT + 1) * TILE_SIZE, HOUSE_WIDTH * TILE_SIZE, 5);
+                        }
+                        ctx.drawImage(houseImg.img, screenX, screenY - DEPTH, HOUSE_WIDTH * TILE_SIZE, (HOUSE_HEIGHT + 1) * TILE_SIZE);
                     } else {
-                        if (block.type === 'house_roof') ctx.fillStyle = '#8c5a32';
-                        else if (block.type === 'house_wall') ctx.fillStyle = '#a0a0a0';
-                        else if (block.type === 'house_door') ctx.fillStyle = '#b5651d';
-                        else if (block.type === 'house_foundation') ctx.fillStyle = '#555555';
-                        else if (block.type === 'villager') ctx.fillStyle = '#fbbf24';
-                        else ctx.fillStyle = '#8c5a32';
-                        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                        let baseColor = '#8c5a32';
+                        if (block.type === 'house_roof') baseColor = '#8c5a32';
+                        else if (block.type === 'house_wall') baseColor = '#a0a0a0';
+                        else if (block.type === 'house_door') baseColor = '#b5651d';
+                        else if (block.type === 'house_foundation') baseColor = '#555555';
+                        else if (block.type === 'villager') baseColor = '#fbbf24';
+
+                        if (DEPTH > 0) {
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                            ctx.fillRect(screenX, screenY + TILE_SIZE - DEPTH, TILE_SIZE, DEPTH);
+                            ctx.fillStyle = baseColor;
+                            ctx.fillRect(screenX, screenY - DEPTH, TILE_SIZE, TILE_SIZE);
+                        } else {
+                            ctx.fillStyle = baseColor;
+                            ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                        }
                     }
                 } else if (block.isChest) {
-                    const chestImg = getChestImage();
-                    if (chestImg) ctx.drawImage(chestImg, screenX, screenY, TILE_SIZE, TILE_SIZE);
-                    else {
-                        ctx.fillStyle = '#f59e0b'; ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    if (DEPTH > 0) {
+                        ctx.fillStyle = '#92400e';
+                        ctx.fillRect(screenX, screenY + TILE_SIZE - DEPTH, TILE_SIZE, DEPTH);
+                        const chestImg = getChestImage();
+                        if (chestImg) ctx.drawImage(chestImg, screenX, screenY - DEPTH, TILE_SIZE, TILE_SIZE);
+                        else { ctx.fillStyle = '#f59e0b'; ctx.fillRect(screenX, screenY - DEPTH, TILE_SIZE, TILE_SIZE); }
+                        if (block.hp < block.maxHp) drawBlockCracks(screenX, screenY - DEPTH, 1 - block.hp / block.maxHp);
+                    } else {
+                        const chestImg = getChestImage();
+                        if (chestImg) ctx.drawImage(chestImg, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                        else { ctx.fillStyle = '#f59e0b'; ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE); }
+                        if (block.hp < block.maxHp) drawBlockCracks(screenX, screenY, 1 - block.hp / block.maxHp);
                     }
-                    if (block.hp < block.maxHp) drawBlockCracks(screenX, screenY, 1 - block.hp / block.maxHp);
                 } else if (ORES[block.type]) {
                     const oreImg = getOreImage(block.type);
+                    const drawY = screenY - DEPTH;
+
+                    if (DEPTH > 0) {
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+                        ctx.fillRect(screenX, screenY + TILE_SIZE - DEPTH, TILE_SIZE, DEPTH);
+
+                        const rightBlock = getBlock(x + 1, y);
+                        if (rightBlock && (rightBlock.type === 'air' || rightBlock.type === 'sky')) {
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                            ctx.beginPath();
+                            ctx.moveTo(screenX + TILE_SIZE, screenY - DEPTH);
+                            ctx.lineTo(screenX + TILE_SIZE + 3, screenY - DEPTH + 3);
+                            ctx.lineTo(screenX + TILE_SIZE + 3, screenY + TILE_SIZE);
+                            ctx.lineTo(screenX + TILE_SIZE, screenY + TILE_SIZE - DEPTH);
+                            ctx.closePath();
+                            ctx.fill();
+                        }
+                    }
+
                     if (oreImg) {
-                        ctx.drawImage(oreImg, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                        ctx.drawImage(oreImg, screenX, drawY, TILE_SIZE, TILE_SIZE);
                     } else {
                         ctx.fillStyle = getRarity(ORES[block.type].rarity).color;
-                        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillRect(screenX, drawY, TILE_SIZE, TILE_SIZE);
+                    }
+
+                    if (DEPTH > 0) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+                        ctx.fillRect(screenX, drawY, TILE_SIZE, 1);
                     }
 
                     if (block.isShiny) {
                         ctx.strokeStyle = '#f59e0b';
                         ctx.lineWidth = 2;
-                        ctx.strokeRect(screenX + 1, screenY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+                        ctx.strokeRect(screenX + 1, drawY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
                     }
 
-                    if (block.hp < block.maxHp) drawBlockCracks(screenX, screenY, 1 - block.hp / block.maxHp);
+                    if (block.hp < block.maxHp) drawBlockCracks(screenX, drawY, 1 - block.hp / block.maxHp);
                 }
             }
         }
 
         (player.questGivers || []).forEach(giver => {
             const screenX = Math.floor(giver.x * TILE_SIZE + offsetX);
-            const screenY = Math.floor(giver.y * TILE_SIZE + offsetY);
+            const screenY = Math.floor(giver.y * TILE_SIZE + offsetY) - DEPTH;
             drawQuestGiver(giver, screenX, screenY);
         });
 
         // Draw Player
         const pSX = canvas.width / 2 - TILE_SIZE / 2;
-        const pSY = canvas.height / 2 - TILE_SIZE / 2;
+        const pSY = canvas.height / 2 - TILE_SIZE / 2 - DEPTH;
+
+        if (DEPTH > 0) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width / 2, canvas.height / 2 + TILE_SIZE / 4, TILE_SIZE / 2 - 4, TILE_SIZE / 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#1d4ed8';
+            ctx.fillRect(pSX + 4, pSY + TILE_SIZE - 4 - DEPTH / 2, TILE_SIZE - 8, DEPTH / 2 + 4);
+        }
+
         ctx.fillStyle = '#3b82f6';
         ctx.fillRect(pSX + 4, pSY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
 
@@ -2870,17 +2956,23 @@
             const rarity = getRarity(ore.rarity);
             const depthInfo = getOreDepthInfo(key);
             const seen = info.seenNormal || info.seenShiny || info.minedNormal > 0 || info.minedShiny > 0;
+            const sprite = `assets/${key}.png`;
 
             return `
                 <div class="${seen ? 'index-item' : 'index-item unseen'}" style="border-left-color: ${rarity.color}">
-                    <div class="index-info">
-                        <div class="index-title">
-                            <span style="color:${rarity.color}">${seen ? ore.name : '???'}</span>
-                            <span class="tt-badge" style="background:${rarity.color}; font-size:0.65em;">${rarity.name}</span>
-                        </div>
-                        <div class="index-counts">
-                            Depth: ${depthInfo.range} (${depthInfo.layer})<br>
-                            Value: $${(ore.costPerKg || 0).toFixed(2)}/kg | Mined: ${info.minedNormal} (Shiny: ${info.minedShiny})
+                    <div style="display:flex; align-items:center; gap:8px; width:100%;">
+                        <img src="${sprite}" alt="" style="width:28px; height:28px; object-fit:contain; image-rendering:pixelated; border-radius:4px; background:var(--bg-card); padding:2px; border:1px solid ${rarity.color};" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='block'">
+                        <span style="display:none; width:28px; height:28px; border-radius:4px; background:${rarity.color};"></span>
+                        <div class="index-info" style="flex:1; min-width:0;">
+                            <div class="index-title">
+                                <span style="color:${rarity.color}">${seen ? ore.name : '???'}</span>
+                                <span class="tt-badge" style="background:${rarity.color}; font-size:0.65em;">${rarity.name}</span>
+                            </div>
+                            <div class="index-counts">
+                                <div>Depth: ${depthInfo.range} (${depthInfo.layer})</div>
+                                <div>Value: $${(ore.costPerKg || 0).toFixed(2)}/kg | Mined: ${info.minedNormal} ${info.minedShiny ? `(✨ ${info.minedShiny})` : ''}</div>
+                                ${seen && ore.desc ? `<div style="font-style:italic; font-size:0.85em; opacity:0.85; margin-top:2px;">"${ore.desc}"</div>` : ''}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3233,13 +3325,13 @@
     };
 
     const ACHIEVEMENTS = [
-        { id:'miner', name:'Master Miner', desc:'Mine more and more ores.', tiers:[1,10,25,50,100,250,500,1000], get:()=>player.stats.mined },
-        { id:'depth', name:'Depth Delver', desc:'Reach deeper layers.', tiers:[10,25,50,100,150,250,500,1000], get:()=>player.stats.maxDepth, suffix:'m' },
-        { id:'shiny', name:'Shiny Hunter', desc:'Find increasingly rare shiny ores.', tiers:[1,3,10,25,50,100], get:()=>player.stats.shinyMined },
-        { id:'quests', name:'Quest Veteran', desc:'Complete more mining quests.', tiers:[1,5,10,25,50,100], get:()=>player.stats.questsCompleted },
-        { id:'level', name:'Level Up', desc:'Reach higher miner levels.', tiers:[2,5,10,20,30,50], get:()=>player.level, suffix:' lvl' },
-        { id:'skills', name:'Skill Tree Climber', desc:'Purchase more skill levels.', tiers:[1,5,10,20,30,50], get:()=>Object.entries(player.unlockedNodes || {}).reduce((s,[id,l])=>s+(id==='root'?0:l||0),0) },
-        { id:'sales', name:'Ore Tycoon', desc:'Sell more total ore value.', tiers:[100,1000,10000,50000,100000,500000], get:()=>player.stats.totalSold }
+        { id:'miner', name:'Master Miner', icon:'⛏️', desc:'Mine more and more ores.', tiers:[1,10,25,50,100,250,500,1000], get:()=>player.stats.mined },
+        { id:'depth', name:'Depth Delver', icon:'🕳️', desc:'Reach deeper layers.', tiers:[10,25,50,100,150,250,500,1000], get:()=>player.stats.maxDepth, suffix:'m' },
+        { id:'shiny', name:'Shiny Hunter', icon:'✨', desc:'Find increasingly rare shiny ores.', tiers:[1,3,10,25,50,100], get:()=>player.stats.shinyMined },
+        { id:'quests', name:'Quest Veteran', icon:'📜', desc:'Complete more mining quests.', tiers:[1,5,10,25,50,100], get:()=>player.stats.questsCompleted },
+        { id:'level', name:'Level Up', icon:'⭐', desc:'Reach higher miner levels.', tiers:[2,5,10,20,30,50], get:()=>player.level, suffix:' lvl' },
+        { id:'skills', name:'Skill Tree Climber', icon:'🌳', desc:'Purchase more skill levels.', tiers:[1,5,10,20,30,50], get:()=>Object.entries(player.unlockedNodes || {}).reduce((s,[id,l])=>s+(id==='root'?0:l||0),0) },
+        { id:'sales', name:'Ore Tycoon', icon:'💰', desc:'Sell more total ore value.', tiers:[100,1000,10000,50000,100000,500000], get:()=>player.stats.totalSold }
     ];
 
     function showFeatureToast(message) {
@@ -3291,14 +3383,14 @@
             const progress = unlocked >= a.tiers.length ? 100 : Math.round(Math.max(0, info.value - prevGoal) / Math.max(1, nextGoal - prevGoal) * 100);
             const currentText = unlocked >= a.tiers.length ? `MAX • ${info.value}${a.suffix||''}` : `${info.value}${a.suffix||''} / ${nextGoal}${a.suffix||''}`;
             return `<div class="achievement-card ${unlocked ? 'unlocked' : ''}">
-                <div class="achievement-icon">${unlocked ? a.icon : 'Reserved'}</div>
+                <div class="achievement-icon">${unlocked ? (a.icon || '🏆') : '🔒'}</div>
                 <div style="flex:1">
                     <div class="achievement-name">${a.name}</div>
                     <div class="achievement-desc">${a.desc}</div>
                     <div class="achievement-tier">Tier ${Math.min(unlocked + 1, a.tiers.length)} / ${a.tiers.length}${unlocked ? ` • ${unlocked} completed` : ''}</div>
                     <div class="achievement-progress"><div style="width:${progress}%"></div></div>
                     <div class="achievement-status">${currentText}</div>
-                    <div class="achievement-reward">${unlocked >= a.tiers.length ? 'Fully upgraded' : `Next milestone: ${nextGoal}${a.suffix||''}`}</div>
+                    <div class="achievement-reward">${unlocked >= a.tiers.length ? 'Fully completed' : `Next milestone: ${nextGoal}${a.suffix||''}`}</div>
                 </div>
             </div>`;
         }).join('');
@@ -3342,6 +3434,25 @@
             music.volume = vol / 100;
             music.loop = settings.musicLoop !== false;
         }
+
+        if (settings.is25DMode !== undefined) {
+            is25DMode = settings.is25DMode !== false;
+        }
+        update25DModeUI();
+    }
+
+    function update25DModeUI() {
+        const btn = document.getElementById('btn-toggle-25d');
+        const checkbox = document.getElementById('setting-25d-mode');
+
+        if (btn) {
+            btn.textContent = is25DMode ? '3D' : '2D';
+            btn.title = is25DMode ? '3D Mode Active (Click for 2D)' : '2D Mode Active (Click for 3D)';
+            btn.style.borderColor = is25DMode ? 'var(--primary-color)' : 'var(--border-color)';
+        }
+        if (checkbox) {
+            checkbox.checked = is25DMode;
+        }
     }
 
     function updateMusicUI() {
@@ -3384,7 +3495,7 @@
 
     function initFeatureSystems() {
         player.settings = {
-            theme:'dark', fontSize:12, musicVolume:50, musicLoop:true,
+            theme:'dark', fontSize:12, musicVolume:50, musicLoop:true, is25DMode:true,
             primaryColor:'#10b981', secondaryColor:'#3b82f6', tertiaryColor:'#f59e0b',
             ...(player.settings || {})
         };
@@ -3397,10 +3508,28 @@
         const font = document.getElementById('setting-font-size');
         const volume = document.getElementById('music-volume');
         const loop = document.getElementById('music-loop');
+        const mode25dInput = document.getElementById('setting-25d-mode');
+        const btnToggle25d = document.getElementById('btn-toggle-25d');
         const darkMode = document.getElementById('setting-dark-mode');
         const lightMode = document.getElementById('setting-light-mode');
         if (darkMode) darkMode.onclick = () => { player.settings.theme='dark'; applySettings(); saveGame(); };
         if (lightMode) lightMode.onclick = () => { player.settings.theme='light'; applySettings(); saveGame(); };
+
+        if (btnToggle25d) btnToggle25d.onclick = () => {
+            is25DMode = !is25DMode;
+            player.settings.is25DMode = is25DMode;
+            update25DModeUI();
+            announce(is25DMode ? '3D Visual Mode Enabled' : '2D Visual Mode Enabled');
+            saveGame();
+        };
+
+        if (mode25dInput) mode25dInput.onchange = e => {
+            is25DMode = e.target.checked;
+            player.settings.is25DMode = is25DMode;
+            update25DModeUI();
+            announce(is25DMode ? '3D Visual Mode Enabled' : '2D Visual Mode Enabled');
+            saveGame();
+        };
 
         [
             ['setting-primary-color','primaryColor'],
