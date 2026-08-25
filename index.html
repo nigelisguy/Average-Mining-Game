@@ -592,7 +592,20 @@
         .menu-news .news-article { margin-bottom:6px; }
         @media (max-width:700px) { .save-slot-grid { grid-template-columns:1fr; } .menu-tools { grid-template-columns:1fr; } }
 
-    </style>
+    
+        .skill-hex-connector {
+            pointer-events:none;
+            clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
+            filter:drop-shadow(0 0 2px rgba(59,130,246,.25));
+        }
+        .hex-skill-node {
+            filter:drop-shadow(0 4px 8px rgba(0,0,0,.28));
+        }
+        .hex-skill-node:hover {
+            transform:translate(-50%,-50%) scale(1.08) !important;
+            filter:drop-shadow(0 0 12px rgba(59,130,246,.55));
+        }
+</style>
 </head>
 <body>
 
@@ -3190,6 +3203,23 @@
     // --- 3D block asset helpers ---
     // 3D mode looks for assets/3d_<type>.png first. If unavailable, it falls
     // back to 3d_dirt.png; the player/breaking overlay falls back to mine.
+    function get3DPlaceholderColor(type) {
+        // Reuse the game's 2D placeholder colors whenever possible.
+        try {
+            if (typeof getBlockColor === 'function') {
+                const c = getBlockColor(type);
+                if (c) return c;
+            }
+        } catch(e) {}
+        try {
+            if (typeof BLOCK_COLORS !== 'undefined' && BLOCK_COLORS[type]) return BLOCK_COLORS[type];
+        } catch(e) {}
+        try {
+            if (typeof blockColors !== 'undefined' && blockColors[type]) return blockColors[type];
+        } catch(e) {}
+        return '#6b4f2a';
+    }
+
     function get3DBlockImage(type) {
         const key = `3d_${type}`;
         const candidates = [
@@ -3209,7 +3239,7 @@
     }
 
     function get3DBreakImage() {
-        const candidates = ['assets/3d_breaking.png','assets/3d_breaking.webp','assets/3d_breaking.jpg'];
+        const candidates = ['assets/3d_mine.png','assets/3d_mine.webp','assets/3d_mine.jpg'];
         for (const src of candidates) {
             const img = new Image();
             img.src = src;
@@ -3273,9 +3303,19 @@
                 ctx.restore();
             };
 
-            drawFace(left, {x:p.x-scale*.36,y:p.y}, '#6b4f2a');
-            drawFace(right, {x:p.x+scale*.36,y:p.y}, '#513b20');
-            drawFace(top, {x:p.x,y:p.y-depth+scale*.36}, '#9b7a45');
+            const base = get3DPlaceholderColor(type);
+            const shade = (hex, amount) => {
+                const m = String(hex).match(/^#([0-9a-f]{6})$/i);
+                if (!m) return hex;
+                const n=parseInt(m[1],16);
+                const r=Math.max(0,Math.min(255,(n>>16)+amount));
+                const g=Math.max(0,Math.min(255,((n>>8)&255)+amount));
+                const b=Math.max(0,Math.min(255,(n&255)+amount));
+                return `rgb(${r},${g},${b})`;
+            };
+            drawFace(left, {x:p.x-scale*.36,y:p.y}, shade(base,-18));
+            drawFace(right, {x:p.x+scale*.36,y:p.y}, shade(base,-35));
+            drawFace(top, {x:p.x,y:p.y-depth+scale*.36}, shade(base,18));
 
             ctx.strokeStyle='rgba(0,0,0,.45)';
             ctx.lineWidth=1;
@@ -3298,6 +3338,7 @@
         blocks.sort((a,b)=>(a.x+a.y)-(b.x+b.y));
         blocks.forEach(({x,y,b})=>drawCube(x-player.x,y-player.y,0,b.type));
 
+        // Player cube.
         const pp=iso(0,0,1.0);
         ctx.fillStyle='#3b82f6';
         ctx.beginPath();
@@ -3305,6 +3346,7 @@
         ctx.fill();
         ctx.strokeStyle='#bfdbfe'; ctx.stroke();
 
+        // Breaking animation / 3d_mine overlay when the targeted block is damaged.
         const target=getBlock(player.x+player.dirX,player.y+player.dirY);
         if(target && target.hp < target.maxHp) {
             const mine=get3DBreakImage();
