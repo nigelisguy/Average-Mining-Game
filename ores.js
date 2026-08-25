@@ -134,7 +134,7 @@ export const ORES = {
     // --- UTILITY / SPECIAL BLOCKS ---
     void_stone: { id: 'void_stone', name: 'Void Stone', rarity: 'l', hp: 100000, costPerKg: 15000.00, color: '#7e22ce', desc: 'Pulls at surrounding light.' },
     slate: { id: 'slate', name: 'Deep Slate', rarity: 'cr', hp: 500, costPerKg: 3.50, color: '#1e293b', desc: 'Hard dark stone.' },
-    bedrock: { id: 'bedrock', name: 'Bedrock', rarity: 'c', hp: 999999999999999999, costPerKg: 0, color: '#333333', desc: 'Impenetrable ancient rock. Unmineable.' }
+    bedrock: { id: 'bedrock', name: 'Bedrock', rarity: 'c', hp: -1, costPerKg: 0, color: '#333333', desc: 'Impenetrable ancient rock. Unmineable.' }
 };
 
 export function getOreColor(oreKey) {

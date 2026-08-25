@@ -449,15 +449,77 @@
         }
         #tree-connections { pointer-events:none; }
         .tree-node-el {
-            transition: transform .15s, filter .15s, box-shadow .15s;
+            position:absolute;
+            width:116px;
+            min-height:104px;
+            transform:translate(-50%,-50%);
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            text-align:center;
+            padding:17px 12px;
+            color:var(--text-main);
+            cursor:default;
+            z-index:3;
+            transition:transform .16s ease, filter .16s ease;
+            isolation:isolate;
         }
-        .tree-node-el:hover { transform: translate(-50%,-50%) scale(1.05); filter: brightness(1.12); }
-        .tree-node-el.locked { filter: grayscale(.65); opacity:.72; }
-        .tree-node-el.available { box-shadow: 0 0 12px rgba(59,130,246,.35); }
-        .tree-node-el.purchased { box-shadow: 0 0 14px rgba(16,185,129,.35); }
-        .tree-node-label { font-size: 11px; line-height:1.05; font-weight:800; }
-        .tree-node-level { font-size:10px; margin-top:3px; opacity:.9; }
-        .tree-node-cost { font-size:9px; color:var(--tertiary-color); margin-top:2px; }
+        .tree-node-el::before {
+            content:"";
+            position:absolute;
+            inset:0;
+            z-index:-1;
+            clip-path:polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%);
+            background:var(--tree-node-fill, var(--bg-box));
+            border:0;
+            filter:drop-shadow(0 0 0 var(--tree-node-border, #475569));
+        }
+        .tree-node-el::after {
+            content:"";
+            position:absolute;
+            inset:0;
+            z-index:-2;
+            clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
+            background:var(--tree-node-border, #475569);
+        }
+        .tree-node-el:hover { transform:translate(-50%,-50%) scale(1.07); filter:brightness(1.12); }
+        .tree-node-el.locked { opacity:.72; filter:grayscale(.6); }
+        .tree-node-el.available { --tree-node-border:#3b82f6; --tree-node-fill:rgba(59,130,246,.16); }
+        .tree-node-el.purchased { --tree-node-border:#10b981; --tree-node-fill:rgba(16,185,129,.22); }
+        .tree-node-el.maxed { --tree-node-border:#f59e0b; --tree-node-fill:rgba(245,158,11,.22); }
+        .tree-node-label { font-size:11px; line-height:1.05; font-weight:900; max-width:92px; }
+        .tree-node-level { font-size:10px; margin-top:4px; opacity:.9; }
+        .tree-node-cost { font-size:9px; color:var(--tertiary-color); margin-top:3px; }
+        .tree-node-tooltip {
+            position:absolute;
+            left:50%;
+            top:calc(100% + 8px);
+            transform:translateX(-50%) translateY(-4px);
+            width:230px;
+            padding:9px 11px;
+            border:1px solid var(--secondary-color);
+            border-radius:7px;
+            background:rgba(10,13,20,.97);
+            color:var(--text-main);
+            box-shadow:0 8px 24px rgba(0,0,0,.55);
+            font-size:11px;
+            line-height:1.35;
+            text-align:left;
+            opacity:0;
+            visibility:hidden;
+            pointer-events:none;
+            transition:opacity .14s ease, transform .14s ease;
+            z-index:20;
+        }
+        .tree-node-tooltip strong { display:block; color:var(--text-title); margin-bottom:4px; }
+        .tree-node-tooltip .skill-desc { color:var(--text-muted); margin-bottom:5px; }
+        .tree-node-tooltip .skill-meta { color:var(--tertiary-color); font-size:10px; }
+        .tree-node-el:hover .tree-node-tooltip {
+            opacity:1;
+            visibility:visible;
+            transform:translateX(-50%) translateY(0);
+        }
         .tree-legend { display:flex; gap:8px; flex-wrap:wrap; margin-top:7px; font-size:.72em; color:var(--text-muted); }
         .tree-legend span { display:inline-flex; align-items:center; gap:4px; }
         .tree-dot { width:9px; height:9px; border-radius:50%; border:1px solid currentColor; display:inline-block; }
@@ -649,7 +711,7 @@
                         <summary style="font-size: 1em; font-weight: bold; color: var(--primary-color);">Skill Tree</summary>
                         <div class="tree-viewport" style="margin-top:6px;">
                             <div id="tree-container">
-                                <svg id="tree-connections" viewBox="0 0 760 760" preserveAspectRatio="none"></svg>
+                                <svg id="tree-connections" viewBox="0 0 760 760" preserveAspectRatio="none" style="display:none"></svg>
                             </div>
                         </div>
                         <div class="tree-legend">
@@ -2776,7 +2838,7 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    function render() {
+    function render2D() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ensureLoadedArea(player.x, player.y);
 
@@ -2947,6 +3009,327 @@
         ctx.strokeRect(pSX + 3, pSY + 3, TILE_SIZE - 6, TILE_SIZE - 6);
     }
 
+    // --- ACTUAL 3D VOXEL VIEW ---
+    // This is a real 3D-style projection of the same world grid: blocks have
+    // top/side faces, depth changes perspective, and the player is rendered
+    // as a small 3D character/prism. Game logic and coordinates stay unchanged.
+    function project3D(wx, wy, wz = 0) {
+        const dx = wx - player.x;
+        const dy = wy - player.y;
+        const depth = Math.max(0.35, 1 - Math.max(0, dy) * 0.018);
+        const sx = canvas.width / 2 + (dx - dy) * 22 * depth;
+        const sy = canvas.height / 2 + (dx + dy) * 11 * depth - wz * 28 * depth;
+        return { x: sx, y: sy, scale: depth };
+    }
+
+    function poly3D(points, fill, stroke = null, lineWidth = 1) {
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+        if (stroke) {
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+        }
+    }
+
+    function drawVoxelBlock3D(x, y, block) {
+        if (!block || !block.revealed || block.type === 'air' || block.type === 'sky') return;
+
+        const p = project3D(x + .5, y + .5, 0);
+        const sc = p.scale;
+        const w = 44 * sc, h = 22 * sc, z = 26 * sc;
+
+        const top = [
+            {x:p.x, y:p.y - h/2},
+            {x:p.x + w/2, y:p.y},
+            {x:p.x, y:p.y + h/2},
+            {x:p.x - w/2, y:p.y}
+        ];
+        const left = [
+            top[3], top[2],
+            {x:top[2].x, y:top[2].y + z},
+            {x:top[3].x, y:top[3].y + z}
+        ];
+        const right = [
+            top[2], top[1],
+            {x:top[1].x, y:top[1].y + z},
+            {x:top[2].x, y:top[2].y + z}
+        ];
+
+        let base = '#334155';
+        if (block.isChest) base = '#b45309';
+        else if (block.type.startsWith('house_')) base = '#8c5a32';
+        else if (ORES[block.type]) base = getRarity(ORES[block.type].rarity).color;
+
+        // Darker sides create actual depth instead of a flat 2.5D offset.
+        poly3D(left, 'rgba(0,0,0,.42)');
+        poly3D(right, 'rgba(0,0,0,.62)');
+        poly3D(top, base, 'rgba(255,255,255,.18)', 1);
+
+        if (ORES[block.type]) {
+            const oreImg = getOreImage(block.type);
+            if (oreImg) {
+                const size = 25 * sc;
+                ctx.drawImage(oreImg, p.x - size/2, p.y - size/2 - 2*sc, size, size);
+            }
+            if (block.isShiny) {
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = Math.max(1.5, 2 * sc);
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y - h/2 + 3*sc);
+                ctx.lineTo(p.x + w/2 - 3*sc, p.y);
+                ctx.lineTo(p.x, p.y + h/2 - 3*sc);
+                ctx.lineTo(p.x - w/2 + 3*sc, p.y);
+                ctx.closePath();
+                ctx.stroke();
+            }
+        }
+
+        if (block.hp < block.maxHp && Number.isFinite(block.maxHp)) {
+            const ratio = Math.max(0, Math.min(1, 1 - block.hp / block.maxHp));
+            ctx.strokeStyle = `rgba(255,255,255,${0.25 + ratio * .45})`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(p.x - w*.25, p.y - h*.1);
+            ctx.lineTo(p.x, p.y + h*.1);
+            ctx.lineTo(p.x + w*.18, p.y - h*.05);
+            ctx.stroke();
+        }
+    }
+
+    function drawPlayer3D() {
+        const p = project3D(player.x + .5, player.y + .5, 0);
+        const sc = p.scale;
+        const w = 18 * sc, h = 12 * sc, body = 24 * sc;
+        const top = [
+            {x:p.x, y:p.y - h/2 - body},
+            {x:p.x + w/2, y:p.y - body},
+            {x:p.x, y:p.y - body + h/2},
+            {x:p.x - w/2, y:p.y - body}
+        ];
+        const left = [
+            top[3], top[2],
+            {x:top[2].x, y:top[2].y + body},
+            {x:top[3].x, y:top[3].y + body}
+        ];
+        const right = [
+            top[2], top[1],
+            {x:top[1].x, y:top[1].y + body},
+            {x:top[2].x, y:top[2].y + body}
+        ];
+        ctx.fillStyle = 'rgba(0,0,0,.4)';
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y + 9*sc, 14*sc, 5*sc, 0, 0, Math.PI*2);
+        ctx.fill();
+        poly3D(left, '#1d4ed8');
+        poly3D(right, '#1e40af');
+        poly3D(top, '#3b82f6', '#93c5fd', 1);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(p.x - 2*sc + player.dirX*3*sc, p.y - body + player.dirY*2*sc, 4*sc, 4*sc);
+    }
+
+    function render3D() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ensureLoadedArea(player.x, player.y);
+
+        // Deep-space/mineshaft background.
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#0b1020');
+        gradient.addColorStop(1, '#030509');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const radiusX = Math.ceil(canvas.width / 44) + 5;
+        const radiusY = Math.ceil(canvas.height / 22) + 8;
+        const blocks = [];
+
+        for (let y = player.y - radiusY; y <= player.y + radiusY; y++) {
+            for (let x = player.x - radiusX; x <= player.x + radiusX; x++) {
+                const block = getBlock(x, y);
+                if (!block || !block.revealed || block.type === 'air' || block.type === 'sky') continue;
+                blocks.push({x, y, block, sort:(x + y) + (y - player.y) * .01});
+            }
+        }
+
+        // Back-to-front ordering is what makes the cubes overlap correctly.
+        blocks.sort((a,b) => a.sort - b.sort);
+        blocks.forEach(item => drawVoxelBlock3D(item.x, item.y, item.block));
+
+        // NPCs are placed above the voxel layer.
+        (player.questGivers || []).forEach(giver => {
+            const p = project3D(giver.x + .5, giver.y + .5, 0);
+            const sc = p.scale;
+            ctx.fillStyle = giver.tutorial ? '#3b82f6' : '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y - 16*sc, 8*sc, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#111827';
+            ctx.fillRect(p.x - 3*sc, p.y - 18*sc, 2*sc, 2*sc);
+            ctx.fillRect(p.x + 1*sc, p.y - 18*sc, 2*sc, 2*sc);
+        });
+
+        drawPlayer3D();
+
+        // Small 3D orientation gizmo.
+        ctx.globalAlpha = .8;
+        ctx.lineWidth = 2;
+        const gx = canvas.width - 62, gy = 62;
+        ctx.strokeStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx+25,gy); ctx.stroke();
+        ctx.strokeStyle = '#22c55e'; ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx,gy-25); ctx.stroke();
+        ctx.strokeStyle = '#3b82f6'; ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx-18,gy+18); ctx.stroke();
+        ctx.fillStyle = '#cbd5e1'; ctx.font = '10px Segoe UI';
+        ctx.fillText('X', gx+28, gy+4); ctx.fillText('Z', gx-4, gy-29); ctx.fillText('Y', gx-29, gy+25);
+        ctx.globalAlpha = 1;
+    }
+
+
+    // --- 3D block asset helpers ---
+    // 3D mode looks for assets/3d_<type>.png first. If unavailable, it falls
+    // back to 3d_dirt.png; the player/breaking overlay falls back to mine.
+    function get3DBlockImage(type) {
+        const key = `3d_${type}`;
+        const candidates = [
+            `assets/${key}.png`,
+            `assets/${key}.webp`,
+            `assets/${key}.jpg`,
+            `assets/3d_dirt.png`,
+            `assets/3d_dirt.webp`,
+            `assets/3d_dirt.jpg`
+        ];
+        for (const src of candidates) {
+            const img = new Image();
+            img.src = src;
+            if (img.complete && img.naturalWidth) return img;
+        }
+        return null;
+    }
+
+    function get3DBreakImage() {
+        const candidates = ['assets/3d_breaking.png','assets/3d_breaking.webp','assets/3d_breaking.jpg'];
+        for (const src of candidates) {
+            const img = new Image();
+            img.src = src;
+            if (img.complete && img.naturalWidth) return img;
+        }
+        return null;
+    }
+
+
+    function renderTrue3D() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ensureLoadedArea(player.x, player.y);
+
+        const scale = Math.max(18, Math.min(32, TILE_SIZE * 0.9));
+        const depth = Math.max(8, scale * 0.38);
+        const ox = canvas.width / 2;
+        const oy = canvas.height / 2;
+
+        // Camera looks down at the block grid. This is a real 3-face cube
+        // construction rather than a simple vertical sprite offset.
+        const iso = (x, y, z=0) => ({
+            x: ox + (x - y) * scale * 0.72,
+            y: oy + (x + y) * scale * 0.36 - z * depth
+        });
+
+        const drawCube = (x, y, z, type) => {
+            const p = iso(x, y, z);
+            const top = [
+                [p.x, p.y - depth],
+                [p.x + scale*.72, p.y - depth + scale*.36],
+                [p.x, p.y - depth + scale*.72],
+                [p.x - scale*.72, p.y - depth + scale*.36]
+            ];
+            const left = [
+                [p.x - scale*.72, p.y - depth + scale*.36],
+                [p.x, p.y],
+                [p.x, p.y + depth],
+                [p.x - scale*.72, p.y - depth + scale*.36 + depth]
+            ];
+            const right = [
+                [p.x + scale*.72, p.y - depth + scale*.36],
+                [p.x, p.y],
+                [p.x, p.y + depth],
+                [p.x + scale*.72, p.y - depth + scale*.36 + depth]
+            ];
+
+            const img = get3DBlockImage(type);
+            const drawFace = (poly, face, fallback) => {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(poly[0][0], poly[0][1]);
+                poly.slice(1).forEach(q => ctx.lineTo(q[0], q[1]));
+                ctx.closePath();
+                ctx.clip();
+                if (img) {
+                    ctx.drawImage(img, face.x - scale, face.y - scale, scale*2, scale*2);
+                } else {
+                    ctx.fillStyle = fallback;
+                    ctx.fillRect(face.x-scale, face.y-scale, scale*2, scale*2);
+                }
+                ctx.restore();
+            };
+
+            drawFace(left, {x:p.x-scale*.36,y:p.y}, '#6b4f2a');
+            drawFace(right, {x:p.x+scale*.36,y:p.y}, '#513b20');
+            drawFace(top, {x:p.x,y:p.y-depth+scale*.36}, '#9b7a45');
+
+            ctx.strokeStyle='rgba(0,0,0,.45)';
+            ctx.lineWidth=1;
+            [top,left,right].forEach(poly => {
+                ctx.beginPath(); ctx.moveTo(poly[0][0],poly[0][1]);
+                poly.slice(1).forEach(q=>ctx.lineTo(q[0],q[1]));
+                ctx.closePath(); ctx.stroke();
+            });
+        };
+
+        const range=12;
+        const blocks=[];
+        for(let y=player.y-range;y<=player.y+range;y++){
+            for(let x=player.x-range;x<=player.x+range;x++){
+                const b=getBlock(x,y);
+                if(!b || !b.revealed || b.type==='air' || b.type==='sky') continue;
+                blocks.push({x,y,b});
+            }
+        }
+        blocks.sort((a,b)=>(a.x+a.y)-(b.x+b.y));
+        blocks.forEach(({x,y,b})=>drawCube(x-player.x,y-player.y,0,b.type));
+
+        const pp=iso(0,0,1.0);
+        ctx.fillStyle='#3b82f6';
+        ctx.beginPath();
+        ctx.arc(pp.x,pp.y-depth*.8,scale*.28,0,Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle='#bfdbfe'; ctx.stroke();
+
+        const target=getBlock(player.x+player.dirX,player.y+player.dirY);
+        if(target && target.hp < target.maxHp) {
+            const mine=get3DBreakImage();
+            const tp=iso(player.dirX,player.dirY,0.15);
+            ctx.save();
+            ctx.globalAlpha=.9;
+            if(mine) ctx.drawImage(mine,tp.x-scale*.45,tp.y-scale*.45,scale*.9,scale*.9);
+            else {
+                ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+                ctx.beginPath();
+                ctx.moveTo(tp.x-scale*.3,tp.y-scale*.2);
+                ctx.lineTo(tp.x+scale*.2,tp.y+scale*.25);
+                ctx.moveTo(tp.x+scale*.25,tp.y-scale*.25);
+                ctx.lineTo(tp.x-scale*.2,tp.y+scale*.3);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+    }
+
+    function render() {
+        if (is25DMode) render3D();
+        else render2D();
+    }
+
     function renderIndex() {
         const grid = document.getElementById('index-grid');
         if (!grid) return;
@@ -3090,7 +3473,7 @@
         const nodeMap = new Map(nodes.map(n => [n.id, n]));
         const width = 760, height = 760;
 
-        // Draw every dependency directly from the req array supplied by skills.js.
+        // Draw every dependency directly from skills.js so every branch is visibly connected.
         nodes.forEach(node => {
             (node.req || []).forEach(reqId => {
                 const parent = nodeMap.get(reqId);
@@ -3100,11 +3483,14 @@
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 line.setAttribute('x1', x1); line.setAttribute('y1', y1);
                 line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+
                 const parentLevel = player.unlockedNodes[parent.id] || 0;
                 const childLevel = player.unlockedNodes[node.id] || 0;
-                line.setAttribute('stroke', parentLevel > 0 && isNodeUnlocked(node.id, player.unlockedNodes) ? '#10b981' : '#475569');
+                const unlockedPath = parentLevel > 0 && isNodeUnlocked(node.id, player.unlockedNodes);
+                line.setAttribute('stroke', unlockedPath ? '#10b981' : '#475569');
                 line.setAttribute('stroke-width', childLevel > 0 ? '4' : '2');
                 line.setAttribute('stroke-linecap', 'round');
+                line.setAttribute('opacity', unlockedPath ? '1' : '.8');
                 svg.appendChild(line);
             });
         });
@@ -3114,28 +3500,34 @@
             const available = isNodeUnlocked(node.id, player.unlockedNodes);
             const maxed = current >= node.maxLevel;
             const cost = getSkillCost(node);
+            const canBuy = available && !maxed && player.sp >= cost;
             const left = node.x / 100 * width;
             const top = node.y / 100 * height;
 
             const div = document.createElement('div');
-            div.className = `tree-node-el ${current > 0 ? 'purchased' : (available ? 'available' : 'locked')}`;
-            div.style.cssText = `
-                position:absolute; left:${left}px; top:${top}px; transform:translate(-50%,-50%);
-                width:108px; min-height:76px; border-radius:10px;
-                border:2px solid ${current > 0 ? '#10b981' : (available ? '#3b82f6' : '#475569')};
-                background:${current > 0 ? 'rgba(16,185,129,.22)' : 'var(--bg-box)'};
-                color:var(--text-main); display:flex; flex-direction:column; align-items:center; justify-content:center;
-                cursor:${available && !maxed && player.sp >= cost ? 'pointer' : 'default'};
-                text-align:center; z-index:2; padding:6px;
-            `;
-            const reqText = node.req?.length ? `Req: ${node.req.map(id => nodeMap.get(id)?.label || id).join(' + ')}` : 'Root skill';
+            div.className = `tree-node-el ${maxed ? 'maxed' : (current > 0 ? 'purchased' : (available ? 'available' : 'locked'))}`;
+            div.style.left = `${left}px`;
+            div.style.top = `${top}px`;
+
+            const reqText = node.req?.length
+                ? node.req.map(id => nodeMap.get(id)?.label || id).join(' + ')
+                : 'Root skill';
             const nextBonus = !maxed ? getSkillBonusText(node, current + 1) : '';
+            const status = maxed ? 'MAXED' : (canBuy ? 'Click to unlock' : (available ? `Need ${cost} SP` : 'Locked'));
+
             div.innerHTML = `
                 <div class="tree-node-label">${node.label}</div>
                 <div class="tree-node-level">Lv ${current}/${node.maxLevel}</div>
-                ${maxed ? '<div class="tree-node-cost">MAXED</div>' : `<div class="tree-node-cost">Cost: ${cost} SP${nextBonus ? ` • ${nextBonus}` : ''}</div>`}
+                ${maxed ? '<div class="tree-node-cost">MAXED</div>' : `<div class="tree-node-cost">${cost} SP${nextBonus ? ` • ${nextBonus}` : ''}</div>`}
+                <div class="tree-node-tooltip">
+                    <strong>${node.label}</strong>
+                    <div class="skill-desc">${node.desc || 'No description provided.'}</div>
+                    <div class="skill-meta">Requirement: ${reqText}</div>
+                    <div class="skill-meta">${status}${nextBonus ? ` • Next: ${nextBonus}` : ''}</div>
+                </div>
             `;
-            div.title = `${node.label}\n${node.desc}\n${reqText}`;
+            div.title = '';
+            div.setAttribute('aria-label', `${node.label}: ${node.desc || 'Skill'}`);
             div.onclick = () => buySkillNode(node.id);
             container.appendChild(div);
         });
