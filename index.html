@@ -62,8 +62,12 @@
             --text-title: #020817;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; font-size: var(--base-font-size); }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Trebuchet MS', 'Verdana', 'Segoe UI', sans-serif; }
+        body {
+            background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden;
+            font-size: var(--base-font-size); text-rendering: geometricPrecision; letter-spacing: 0.02em;
+            text-shadow: 0 1px 0 rgba(0,0,0,0.2);
+        }
         #game-container { display: flex; width: 100vw; height: 100vh; position: relative; }
         #viewport { flex: 1; position: relative; background: var(--bg-viewport); display: flex; justify-content: center; align-items: center; overflow: hidden; }
         canvas { background-color: var(--bg-viewport); image-rendering: pixelated; display: block; }
@@ -201,11 +205,12 @@
         }
 
         .quick-section-title {
-            font-size: 0.85em;
-            font-weight: bold;
+            font-size: 0.75em;
+            font-weight: 800;
             color: var(--primary-color);
             margin-bottom: 6px;
             text-transform: uppercase;
+            letter-spacing: 0.08em;
             opacity: 0.9;
         }
 
@@ -289,7 +294,10 @@
         }
 
         .tabs { display: flex; background-color: var(--bg-header); border-bottom: 2px solid var(--border-color); flex-shrink: 0; overflow-x:auto; }
-        .tab-btn { flex: 1; min-width: 50px; padding: 10px 2px; background: none; border: none; color: var(--text-muted); font-weight: bold; cursor: pointer; font-size: 0.85em; text-align: center; }
+        .tab-btn {
+            flex: 1; min-width: 50px; padding: 10px 2px; background: none; border: none; color: var(--text-muted);
+            font-weight: 800; cursor: pointer; font-size: 0.72em; text-align: center; text-transform: uppercase; letter-spacing: 0.08em;
+        }
         .tab-btn.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); background-color: var(--bg-sidebar); }
         
         .main-tab-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; min-height: 0; }
@@ -307,8 +315,11 @@
             margin: 0;
         }
 
-        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; }
-        .card-title { font-size: 1em; font-weight: bold; color: var(--primary-color); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 0 rgba(15,23,42,0.5); }
+        .card-title {
+            font-size: 0.9em; font-weight: 800; color: var(--primary-color); margin-bottom: 8px; display: flex;
+            justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 0.08em;
+        }
         .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 0.9em; }
         .stat-box { background: var(--bg-box); padding: 6px 8px; border-radius: 4px; border: 1px solid var(--border-color); }
         .stat-val { font-size: 1.1em; font-weight: bold; color: var(--text-title); }
@@ -319,7 +330,12 @@
         .shop-desc { font-size: 0.8em; color: var(--text-muted); line-height: 1.3; }
         .craft-cost-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
         
-        .btn { background: var(--secondary-color); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85em; white-space: nowrap; }
+        .btn {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--secondary-color) 86%, white 14%), var(--secondary-color));
+            color: white; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 4px; cursor: pointer;
+            font-weight: 800; font-size: 0.75em; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.08em;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 0 rgba(15,23,42,0.5);
+        }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-sell { background: var(--primary-color); width: 100%; color: #fff; padding: 8px; flex-shrink: 0; }
         .btn-action { background: var(--secondary-color); }
@@ -926,7 +942,7 @@
         </div>
         <div class="settings-row inline">
             <label for="setting-25d-mode"><b>2.5D / 3D Visuals</b></label>
-            <input id="setting-25d-mode" type="checkbox" checked>
+            <input id="setting-25d-mode" type="checkbox">
         </div>
         <div style="display:flex;gap:6px;">
             <button class="btn" id="btn-replay-tutorial" style="flex:1;">Tutorial</button>
@@ -3073,14 +3089,25 @@
             {x:top[2].x, y:top[2].y + z}
         ];
 
-        let base = '#334155';
+        let base = get3DPlaceholderColor(block.type);
         if (block.isChest) base = '#b45309';
         else if (block.type.startsWith('house_')) base = '#8c5a32';
         else if (ORES[block.type]) base = getRarity(ORES[block.type].rarity).color;
 
+        const shadeColor = (hex, offset) => {
+            const match = String(hex).match(/^#([0-9a-f]{6})$/i);
+            if (!match) return hex;
+            const n = parseInt(match[1], 16);
+            const clamp = value => Math.max(0, Math.min(255, value));
+            const r = clamp((n >> 16) + offset);
+            const g = clamp(((n >> 8) & 255) + offset);
+            const b = clamp((n & 255) + offset);
+            return `rgb(${r}, ${g}, ${b})`;
+        };
+
         // Darker sides create actual depth instead of a flat 2.5D offset.
-        poly3D(left, 'rgba(0,0,0,.42)');
-        poly3D(right, 'rgba(0,0,0,.62)');
+        poly3D(left, shadeColor(base, -28));
+        poly3D(right, shadeColor(base, -42));
         poly3D(top, base, 'rgba(255,255,255,.18)', 1);
 
         if (ORES[block.type]) {
@@ -3204,7 +3231,32 @@
     // 3D mode looks for assets/3d_<type>.png first. If unavailable, it falls
     // back to 3d_dirt.png; the player/breaking overlay falls back to mine.
     function get3DPlaceholderColor(type) {
-        // Reuse the game's 2D placeholder colors whenever possible.
+        const fallbackPalette = {
+            dirt: '#8b5e34',
+            gravel: '#7a7a7a',
+            soft_rock: '#8c8f94',
+            limestone: '#d9d2bf',
+            granite: '#8d6a4f',
+            iron_ore: '#aaaaaa',
+            copper_ore: '#b86a3d',
+            gold_ore: '#f2c94c',
+            deep_quartz: '#7dd3fc',
+            obsidian_slate: '#221f3a',
+            crystal: '#68d391',
+            geode_fragment: '#93c5fd',
+            magma_crystal: '#f97316',
+            ruby: '#ef4444',
+            sapphire: '#3b82f6',
+            emerald: '#10b981',
+            house_wall: '#8c5a32',
+            house_roof: '#d2a679',
+            chest: '#f59e0b'
+        };
+
+        if (fallbackPalette[type]) return fallbackPalette[type];
+        if (type && type.startsWith('house_')) return '#8c5a32';
+        if (type === 'chest') return '#f59e0b';
+
         try {
             if (typeof getBlockColor === 'function') {
                 const c = getBlockColor(type);
@@ -3929,7 +3981,7 @@
 
     function initFeatureSystems() {
         player.settings = {
-            theme:'dark', fontSize:12, musicVolume:50, musicLoop:true, is25DMode:true,
+            theme:'dark', fontSize:12, musicVolume:50, musicLoop:true, is25DMode:false,
             primaryColor:'#10b981', secondaryColor:'#3b82f6', tertiaryColor:'#f59e0b',
             ...(player.settings || {})
         };
