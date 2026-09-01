@@ -3119,40 +3119,6 @@
         }
     }
 
-    function get3DPlaceholderColor(type, variant = 'top') {
-        const baseMap = {
-            dirt: ['#8b5e3c', '#6a3f29', '#a96b45'],
-            gravel: ['#8f8a7c', '#5f5c54', '#b3ab97'],
-            soft_rock: ['#b8b7ad', '#7a7d7d', '#d6d3c7'],
-            limestone: ['#d4d2b6', '#918b6e', '#e9e4cc'],
-            iron_ore: ['#a9b4c3', '#69798e', '#dfeaf7'],
-            gold_ore: ['#d5b34d', '#8d6728', '#f7d36a'],
-            deep_quartz: ['#9ad7ff', '#4f79a8', '#dff7ff'],
-            obsidian_slate: ['#2e3353', '#181c2d', '#4a517a'],
-            basalt_block: ['#4e5966', '#2d3749', '#758295'],
-            magma_crystal: ['#ff7b54', '#ad3c20', '#ffc1a3'],
-            geode_fragment: ['#a78bfa', '#5b43b2', '#ddd6fe'],
-            granite_core: ['#7e8f9f', '#4e5d6a', '#c6cfdb'],
-            boulder: ['#7d6f66', '#4e443d', '#aaa19a'],
-            crystal: ['#5eead4', '#0f766e', '#c7fff6'],
-            house_wall: ['#7c5a3f', '#4d321d', '#b98d5b'],
-            house_roof: ['#8a5d32', '#56351b', '#c58d52'],
-            chest: ['#f59e0b', '#a16207', '#fcd34d']
-        };
-
-        const key = String(type || '').toLowerCase();
-        let palette = baseMap[key] || baseMap.dirt;
-        if (!baseMap[key] && ORES[type]) {
-            const color = getRarity(ORES[type].rarity).color;
-            if (color) {
-                palette = [shadeColor(color, 18), shadeColor(color, -28), shadeColor(color, 45)];
-            }
-        }
-        if (variant === 'left') return palette[1];
-        if (variant === 'right') return palette[2] || palette[0];
-        return palette[0];
-    }
-
     function drawVoxelBlock3D(x, y, block) {
         if (!block || !block.revealed || block.type === 'air' || block.type === 'sky') return;
 
@@ -3330,9 +3296,12 @@
             `assets/${key}.png`,
             `assets/${key}.webp`,
             `assets/${key}.jpg`,
-            `assets/3d_dirt.png`,
-            `assets/3d_dirt.webp`,
-            `assets/3d_dirt.jpg`
+            'assets/block.png',
+            'assets/block.webp',
+            'assets/block.jpg',
+            'assets/3d_dirt.png',
+            'assets/3d_dirt.webp',
+            'assets/3d_dirt.jpg'
         ];
         for (const src of candidates) {
             const img = new Image();
