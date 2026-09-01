@@ -74,7 +74,7 @@ export const RARITIES = {
         weight: 0.1
     },
     'o-o': {
-        name: '1 in 150M',
+        name: 'Voidcore',
         color: '#000000',
         valMult: 1000,
         splitVault: true,

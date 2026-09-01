@@ -1161,7 +1161,6 @@
     let keyState = {};
     let announcementTimer = null;
 
-    // Smoother upgrade cost functions (prevents astronomical costs like $70k+ at level 30)
     function getPowerCost() {
         const lvl = player.powerLvl || 0;
         return Math.floor(10 * Math.pow(1.14, lvl) + lvl * 12);
@@ -1343,10 +1342,10 @@
 
     const TUTORIAL_QUEST_STAGES = [
         { title: 'First Steps', description: 'Mine 3 blocks and learn how mining works.', goalType: 'mineBlocks', amount: 3, reward: { sp: 1 } },
-        { title: 'Fill the Pack', description: 'Collect 8kg of dirt. Keep your inventory organized.', goalType: 'collectWeight', oreKey: 'dirt', amount: 8, reward: { item: 'repair_kit', amount: 1 } },
-        { title: 'Into the Shallows', description: 'Reach depth 25, but stay in the safe upper mine.', goalType: 'reachDepth', amount: 25, reward: { power: 1 } },
-        { title: 'Know Your Way Back', description: 'Reach depth 50, then return to the Guide at the surface.', goalType: 'reachDepth', amount: 50, reward: { capacity: 10 } },
-        { title: 'The Final Lesson', description: 'Reach depth 100 and return to the Guide. This is the deepest point required by the tutorial.', goalType: 'reachDepth', amount: 100, reward: { item: 'strafe_boots', amount: 1 }, final: true }
+        { title: 'Fill the Pack', description: 'Collect 8kg of dirt. Easy feat.', goalType: 'collectWeight', oreKey: 'dirt', amount: 8, reward: { item: 'repair_kit', amount: 1 } },
+        { title: 'Into the Shallows', description: 'Reach depth 25. Get a taste of the dirt.', goalType: 'reachDepth', amount: 25, reward: { power: 1 } },
+        { title: 'Know Your Way Back', description: 'Reach depth 50. Head deeper and deeper.', goalType: 'reachDepth', amount: 50, reward: { capacity: 10 } },
+        { title: 'The Final Lesson', description: 'Reach depth 100. Look at rocks, and then return.', goalType: 'reachDepth', amount: 100, reward: { item: 'strafe_boots', amount: 1 }, final: true }
     ];
 
     function getTutorialStage() {
@@ -2109,7 +2108,7 @@
                         </div>
                         <div style="display:flex; gap:6px; align-items:flex-start;">
                             <button class="btn btn-action" data-craft-id="${recipeId}" ${disabled ? 'disabled' : ''}>Craft</button>
-                            <button class="reserve-btn" data-pin-id="${recipeId}">${pinned ? 'Pin' : 'Unpin'}</button>
+                            <button class="reserve-btn" data-pin-id="${recipeId}">${pinned ? 'Unpin' : 'Pin'}</button>
                         </div>
                     </div>
                     <div class="craft-cost-grid">${costGrid}</div>
@@ -3647,9 +3646,9 @@
 
         const consumables = [
             { key: 'dynamite', label: 'Dynamite (1x3)', action: () => applyAutoTool('dynamite') },
-            { key: 'mega_dynamite', label: 'Mega Dynamite (1x5)', action: () => applyAutoTool('mega_dynamite') },
+            { key: 'mega_dynamite', label: 'Better Dynamite (1x5)', action: () => applyAutoTool('mega_dynamite') },
             { key: 'nuke', label: 'Bomb (3x3)', action: () => applyAutoTool('nuke') },
-            { key: 'mega_nuke', label: 'Mega Nuke (5x5)', action: () => applyAutoTool('mega_nuke') },
+            { key: 'mega_nuke', label: 'Better Bomb (5x5)', action: () => applyAutoTool('mega_nuke') },
             { key: 'void_charge', label: 'Void Charge (10 Down)', action: () => applyAutoTool('void_charge') }
         ];
 
@@ -3922,7 +3921,7 @@
         }
 
         if (settings.is25DMode !== undefined) {
-            is25DMode = settings.is25DMode !== false;
+            is25DMode = settings.is25DMode !== true;
         }
         update25DModeUI();
     }
