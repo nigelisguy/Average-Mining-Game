@@ -62,15 +62,16 @@
             --text-title: #020817;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Trebuchet MS', 'Verdana', 'Segoe UI', sans-serif; }
-        body {
-            background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden;
-            font-size: var(--base-font-size); text-rendering: geometricPrecision; letter-spacing: 0.02em;
-            text-shadow: 0 1px 0 rgba(0,0,0,0.2);
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; font-size: var(--base-font-size); }
         #game-container { display: flex; width: 100vw; height: 100vh; position: relative; }
-        #viewport { flex: 1; position: relative; background: var(--bg-viewport); display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        #viewport { flex: 1; position: relative; background: linear-gradient(180deg, #0b1320 0%, #030814 100%); display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 25px rgba(0,0,0,0.45); }
         canvas { background-color: var(--bg-viewport); image-rendering: pixelated; display: block; }
+        .btn, .tab-btn, .card-title, .inventory-header, .quick-section-title, .floating-circle-btn, .modal-content, .settings-row label, .title-case {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0.04em;
+            text-transform: none;
+        }
 
         #hud-container {
             position: absolute; top: 12px; left: 12px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; z-index: 100;
@@ -315,13 +316,10 @@
             margin: 0;
         }
 
-        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 0 rgba(15,23,42,0.5); }
-        .card-title {
-            font-size: 0.9em; font-weight: 800; color: var(--primary-color); margin-bottom: 8px; display: flex;
-            justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 0.08em;
-        }
+        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; }
+        .card-title { font-size: 1em; font-weight: bold; color: var(--primary-color); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 0.9em; }
-        .stat-box { background: var(--bg-box); padding: 6px 8px; border-radius: 4px; border: 1px solid var(--border-color); }
+        .stat-box { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.1)), var(--bg-box); padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: inset 0 1px 0 rgba(255,255,255,0.03); }
         .stat-val { font-size: 1.1em; font-weight: bold; color: var(--text-title); }
 
         .shop-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-box); padding: 10px; border-radius: 6px; margin-bottom: 8px; position: relative; gap: 10px; border: 1px solid var(--border-color); }
@@ -330,16 +328,11 @@
         .shop-desc { font-size: 0.8em; color: var(--text-muted); line-height: 1.3; }
         .craft-cost-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
         
-        .btn {
-            background: linear-gradient(180deg, color-mix(in srgb, var(--secondary-color) 86%, white 14%), var(--secondary-color));
-            color: white; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 4px; cursor: pointer;
-            font-weight: 800; font-size: 0.75em; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.08em;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 0 rgba(15,23,42,0.5);
-        }
+        .btn { background: var(--secondary-color); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85em; white-space: nowrap; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-sell { background: var(--primary-color); width: 100%; color: #fff; padding: 8px; flex-shrink: 0; }
-        .btn-action { background: var(--secondary-color); }
-        .btn-danger { background: #ef4444; }
+        .btn-sell { background: linear-gradient(180deg, #26c281 0%, #118a62 100%); width: 100%; color: #fff; padding: 8px; flex-shrink: 0; }
+        .btn-action { background: linear-gradient(180deg, #4da3ff 0%, #2f6de0 100%); }
+        .btn-danger { background: linear-gradient(180deg, #ff7e7e 0%, #d83a3a 100%); }
 
         .index-grid { display: flex; flex-direction: column; gap: 4px; flex: 1; overflow-y: auto; padding-right: 4px; min-height: 0; }
         .index-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-box); padding: 6px 8px; border-radius: 6px; border-left: 4px solid #475569; gap: 8px; }
@@ -410,12 +403,12 @@
             position: absolute; bottom: 12px; left: 12px; display: flex; gap: 8px; z-index: 500;
         }
         .floating-circle-btn {
-            width: 38px; height: 38px; border-radius: 50%;
-            background: var(--bg-card); border: 2px solid var(--border-color); color: var(--text-main); font-size: 16px;
+            width: 38px; height: 38px; border-radius: 12px;
+            background: linear-gradient(180deg, #e7f0ff 0%, #cfe1ff 100%); border: 1px solid rgba(26, 64, 116, 0.4); color: #1c2d4d; font-size: 12px;
             display: flex; align-items: center; justify-content: center; cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: transform 0.2s, background 0.2s;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 0 rgba(57, 81, 124, 0.35); transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
         }
-        .floating-circle-btn:hover { transform: scale(1.08); border-color: var(--primary-color); }
+        .floating-circle-btn:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 3px 0 rgba(57, 81, 124, 0.35); border-color: rgba(17, 75, 168, 0.7); }
 
         #settings-modal, #log-modal, #surface-return-modal, #debug-modal {
             display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -1161,7 +1154,6 @@
     let keyState = {};
     let announcementTimer = null;
 
-    // Smoother upgrade cost functions (prevents astronomical costs like $70k+ at level 30)
     function getPowerCost() {
         const lvl = player.powerLvl || 0;
         return Math.floor(10 * Math.pow(1.14, lvl) + lvl * 12);
@@ -1343,10 +1335,10 @@
 
     const TUTORIAL_QUEST_STAGES = [
         { title: 'First Steps', description: 'Mine 3 blocks and learn how mining works.', goalType: 'mineBlocks', amount: 3, reward: { sp: 1 } },
-        { title: 'Fill the Pack', description: 'Collect 8kg of dirt. Keep your inventory organized.', goalType: 'collectWeight', oreKey: 'dirt', amount: 8, reward: { item: 'repair_kit', amount: 1 } },
-        { title: 'Into the Shallows', description: 'Reach depth 25, but stay in the safe upper mine.', goalType: 'reachDepth', amount: 25, reward: { power: 1 } },
-        { title: 'Know Your Way Back', description: 'Reach depth 50, then return to the Guide at the surface.', goalType: 'reachDepth', amount: 50, reward: { capacity: 10 } },
-        { title: 'The Final Lesson', description: 'Reach depth 100 and return to the Guide. This is the deepest point required by the tutorial.', goalType: 'reachDepth', amount: 100, reward: { item: 'strafe_boots', amount: 1 }, final: true }
+        { title: 'Fill the Pack', description: 'Collect 8kg of dirt. Easy feat.', goalType: 'collectWeight', oreKey: 'dirt', amount: 8, reward: { item: 'repair_kit', amount: 1 } },
+        { title: 'Into the Shallows', description: 'Reach depth 25. Get a taste of the dirt.', goalType: 'reachDepth', amount: 25, reward: { power: 1 } },
+        { title: 'Know Your Way Back', description: 'Reach depth 50. Head deeper and deeper.', goalType: 'reachDepth', amount: 50, reward: { capacity: 10 } },
+        { title: 'The Final Lesson', description: 'Reach depth 100. Look at rocks, and then return.', goalType: 'reachDepth', amount: 100, reward: { item: 'strafe_boots', amount: 1 }, final: true }
     ];
 
     function getTutorialStage() {
@@ -2109,7 +2101,7 @@
                         </div>
                         <div style="display:flex; gap:6px; align-items:flex-start;">
                             <button class="btn btn-action" data-craft-id="${recipeId}" ${disabled ? 'disabled' : ''}>Craft</button>
-                            <button class="reserve-btn" data-pin-id="${recipeId}">${pinned ? 'Pin' : 'Unpin'}</button>
+                            <button class="reserve-btn" data-pin-id="${recipeId}">${pinned ? 'Unpin' : 'Pin'}</button>
                         </div>
                     </div>
                     <div class="craft-cost-grid">${costGrid}</div>
@@ -2867,8 +2859,55 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
+    function drawTileBlock(screenX, screenY, topColor, sideColor, height = TILE_SIZE) {
+        ctx.fillStyle = sideColor;
+        ctx.fillRect(screenX + 2, screenY + height - 4, TILE_SIZE - 4, 4);
+        ctx.fillStyle = topColor;
+        ctx.fillRect(screenX, screenY, TILE_SIZE, height);
+        ctx.fillStyle = 'rgba(255,255,255,0.12)';
+        ctx.fillRect(screenX, screenY, TILE_SIZE, 2);
+    }
+
+    function getAirBlockColor(y) {
+        if (y < 0) return '#8ec9ff';
+        if (y < 30) return '#87d7d1';
+        if (y < 120) return '#6fb1d8';
+        return '#4f7aa8';
+    }
+
+    function getFogBlockColor(y) {
+        if (y < 30) return '#6a5b5d';
+        if (y < 120) return '#4a4d5c';
+        if (y < 260) return '#2d3749';
+        return '#1d2433';
+    }
+
+    function drawBackground() {
+        const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        sky.addColorStop(0, '#091823');
+        sky.addColorStop(0.45, '#132b3f');
+        sky.addColorStop(0.72, '#0f1e2d');
+        sky.addColorStop(1, '#070b10');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const haze = ctx.createRadialGradient(canvas.width * 0.5, canvas.height * 0.18, 10, canvas.width * 0.5, canvas.height * 0.18, canvas.width * 0.6);
+        haze.addColorStop(0, 'rgba(120, 166, 255, 0.28)');
+        haze.addColorStop(0.35, 'rgba(75, 104, 164, 0.12)');
+        haze.addColorStop(1, 'rgba(10, 15, 20, 0)');
+        ctx.fillStyle = haze;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const floorFade = ctx.createLinearGradient(0, canvas.height * 0.62, 0, canvas.height);
+        floorFade.addColorStop(0, 'rgba(11, 20, 28, 0)');
+        floorFade.addColorStop(1, 'rgba(7, 12, 16, 0.88)');
+        ctx.fillStyle = floorFade;
+        ctx.fillRect(0, canvas.height * 0.62, canvas.width, canvas.height * 0.38);
+    }
+
     function render2D() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBackground();
         ensureLoadedArea(player.x, player.y);
 
         const DEPTH = is25DMode ? 6 : 0;
@@ -2881,6 +2920,21 @@
         const startTileY = Math.floor(-offsetY / TILE_SIZE) - 2;
         const endTileY = startTileY + Math.ceil(canvas.height / TILE_SIZE) + 4;
 
+        const pSX = canvas.width / 2 - TILE_SIZE / 2;
+        const pSY = canvas.height / 2 - TILE_SIZE / 2 - DEPTH;
+
+        if (DEPTH > 0) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width / 2, canvas.height / 2 + TILE_SIZE / 4, TILE_SIZE / 2 - 4, TILE_SIZE / 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#1d4ed8';
+            ctx.fillRect(pSX + 4, pSY + TILE_SIZE - 4 - DEPTH / 2, TILE_SIZE - 8, DEPTH / 2 + 4);
+        }
+
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillRect(pSX + 4, pSY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+
         for (let y = startTileY; y <= endTileY; y++) {
             for (let x = startTileX; x <= endTileX; x++) {
                 const screenX = Math.floor(x * TILE_SIZE + offsetX);
@@ -2891,20 +2945,26 @@
                     if (y < 0) {
                         const airImg = getAirTexture(y);
                         if (airImg) ctx.drawImage(airImg, screenX, screenY, TILE_SIZE, TILE_SIZE);
-                        else { ctx.fillStyle = '#7cc9ff'; ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE); }
+                        else {
+                            drawTileBlock(screenX, screenY, getAirBlockColor(y), '#5d8db8', TILE_SIZE);
+                        }
                     } else {
                         if (DEPTH > 0) {
                             ctx.fillStyle = '#100f0d';
                             ctx.fillRect(screenX, screenY + TILE_SIZE - DEPTH, TILE_SIZE, DEPTH);
                             const fogImg = getFogTexture(y);
                             if (fogImg) ctx.drawImage(fogImg, screenX, screenY - DEPTH, TILE_SIZE, TILE_SIZE);
-                            else { ctx.fillStyle = '#1e1b18'; ctx.fillRect(screenX, screenY - DEPTH, TILE_SIZE, TILE_SIZE); }
+                            else {
+                                drawTileBlock(screenX, screenY - DEPTH, getFogBlockColor(y), '#1a1d29', TILE_SIZE);
+                            }
                             ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
                             ctx.fillRect(screenX, screenY - DEPTH, TILE_SIZE, 1);
                         } else {
                             const fogImg = getFogTexture(y);
                             if (fogImg) ctx.drawImage(fogImg, screenX, screenY, TILE_SIZE, TILE_SIZE);
-                            else { ctx.fillStyle = '#1e1b18'; ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE); }
+                            else {
+                                drawTileBlock(screenX, screenY, getFogBlockColor(y), '#1a1d29', TILE_SIZE);
+                            }
                         }
                     }
                 } else if (block.type === 'air' || block.type === 'sky') {
@@ -2912,8 +2972,8 @@
                     if (airImg && block.houseVariant !== 'interior') {
                         ctx.drawImage(airImg, screenX, screenY, TILE_SIZE, TILE_SIZE);
                     } else {
-                        ctx.fillStyle = (block.houseVariant === 'interior') ? '#f2e4c6' : (y < 0 ? '#7cc9ff' : '#0f172a');
-                        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                        const airColor = (block.houseVariant === 'interior') ? '#f2e4c6' : (y < 0 ? '#8ec9ff' : '#3b4b69');
+                        drawTileBlock(screenX, screenY, airColor, '#20314a', TILE_SIZE);
                     }
                     if (DEPTH > 0 && y >= 0) {
                         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
@@ -3011,22 +3071,6 @@
             drawQuestGiver(giver, screenX, screenY);
         });
 
-        // Draw Player
-        const pSX = canvas.width / 2 - TILE_SIZE / 2;
-        const pSY = canvas.height / 2 - TILE_SIZE / 2 - DEPTH;
-
-        if (DEPTH > 0) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-            ctx.beginPath();
-            ctx.ellipse(canvas.width / 2, canvas.height / 2 + TILE_SIZE / 4, TILE_SIZE / 2 - 4, TILE_SIZE / 6, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#1d4ed8';
-            ctx.fillRect(pSX + 4, pSY + TILE_SIZE - 4 - DEPTH / 2, TILE_SIZE - 8, DEPTH / 2 + 4);
-        }
-
-        ctx.fillStyle = '#3b82f6';
-        ctx.fillRect(pSX + 4, pSY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
 
         ctx.fillStyle = '#ffffff';
         const eyeX = pSX + 16 + (player.dirX * 6);
@@ -3042,12 +3086,22 @@
     // This is a real 3D-style projection of the same world grid: blocks have
     // top/side faces, depth changes perspective, and the player is rendered
     // as a small 3D character/prism. Game logic and coordinates stay unchanged.
+    function shadeColor(hex, amount) {
+        const match = String(hex || '#6b7280').match(/^#([0-9a-f]{6})$/i);
+        if (!match) return hex;
+        const value = parseInt(match[1], 16);
+        const r = Math.max(0, Math.min(255, (value >> 16) + amount));
+        const g = Math.max(0, Math.min(255, ((value >> 8) & 255) + amount));
+        const b = Math.max(0, Math.min(255, (value & 255) + amount));
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
     function project3D(wx, wy, wz = 0) {
         const dx = wx - player.x;
         const dy = wy - player.y;
-        const depth = Math.max(0.35, 1 - Math.max(0, dy) * 0.018);
-        const sx = canvas.width / 2 + (dx - dy) * 22 * depth;
-        const sy = canvas.height / 2 + (dx + dy) * 11 * depth - wz * 28 * depth;
+        const depth = Math.max(0.42, 1 - Math.max(0, dy) * 0.02);
+        const sx = canvas.width / 2 + (dx - dy) * 24 * depth;
+        const sy = canvas.height / 2 + (dx + dy) * 12 * depth - wz * 30 * depth;
         return { x: sx, y: sy, scale: depth };
     }
 
@@ -3070,7 +3124,7 @@
 
         const p = project3D(x + .5, y + .5, 0);
         const sc = p.scale;
-        const w = 44 * sc, h = 22 * sc, z = 26 * sc;
+        const w = 46 * sc, h = 24 * sc, z = 28 * sc;
 
         const top = [
             {x:p.x, y:p.y - h/2},
@@ -3089,35 +3143,24 @@
             {x:top[2].x, y:top[2].y + z}
         ];
 
-        let base = get3DPlaceholderColor(block.type);
+        let base = '#334155';
         if (block.isChest) base = '#b45309';
         else if (block.type.startsWith('house_')) base = '#8c5a32';
         else if (ORES[block.type]) base = getRarity(ORES[block.type].rarity).color;
 
-        const shadeColor = (hex, offset) => {
-            const match = String(hex).match(/^#([0-9a-f]{6})$/i);
-            if (!match) return hex;
-            const n = parseInt(match[1], 16);
-            const clamp = value => Math.max(0, Math.min(255, value));
-            const r = clamp((n >> 16) + offset);
-            const g = clamp(((n >> 8) & 255) + offset);
-            const b = clamp((n & 255) + offset);
-            return `rgb(${r}, ${g}, ${b})`;
-        };
-
         // Darker sides create actual depth instead of a flat 2.5D offset.
-        poly3D(left, shadeColor(base, -28));
-        poly3D(right, shadeColor(base, -42));
+        poly3D(left, 'rgba(0,0,0,.42)');
+        poly3D(right, 'rgba(0,0,0,.62)');
         poly3D(top, base, 'rgba(255,255,255,.18)', 1);
 
         if (ORES[block.type]) {
             const oreImg = getOreImage(block.type);
             if (oreImg) {
-                const size = 25 * sc;
+                const size = 24 * sc;
                 ctx.drawImage(oreImg, p.x - size/2, p.y - size/2 - 2*sc, size, size);
             }
             if (block.isShiny) {
-                ctx.strokeStyle = '#f59e0b';
+                ctx.strokeStyle = '#fef3c7';
                 ctx.lineWidth = Math.max(1.5, 2 * sc);
                 ctx.beginPath();
                 ctx.moveTo(p.x, p.y - h/2 + 3*sc);
@@ -3231,32 +3274,7 @@
     // 3D mode looks for assets/3d_<type>.png first. If unavailable, it falls
     // back to 3d_dirt.png; the player/breaking overlay falls back to mine.
     function get3DPlaceholderColor(type) {
-        const fallbackPalette = {
-            dirt: '#8b5e34',
-            gravel: '#7a7a7a',
-            soft_rock: '#8c8f94',
-            limestone: '#d9d2bf',
-            granite: '#8d6a4f',
-            iron_ore: '#aaaaaa',
-            copper_ore: '#b86a3d',
-            gold_ore: '#f2c94c',
-            deep_quartz: '#7dd3fc',
-            obsidian_slate: '#221f3a',
-            crystal: '#68d391',
-            geode_fragment: '#93c5fd',
-            magma_crystal: '#f97316',
-            ruby: '#ef4444',
-            sapphire: '#3b82f6',
-            emerald: '#10b981',
-            house_wall: '#8c5a32',
-            house_roof: '#d2a679',
-            chest: '#f59e0b'
-        };
-
-        if (fallbackPalette[type]) return fallbackPalette[type];
-        if (type && type.startsWith('house_')) return '#8c5a32';
-        if (type === 'chest') return '#f59e0b';
-
+        // Reuse the game's 2D placeholder colors whenever possible.
         try {
             if (typeof getBlockColor === 'function') {
                 const c = getBlockColor(type);
@@ -3278,9 +3296,12 @@
             `assets/${key}.png`,
             `assets/${key}.webp`,
             `assets/${key}.jpg`,
-            `assets/3d_dirt.png`,
-            `assets/3d_dirt.webp`,
-            `assets/3d_dirt.jpg`
+            'assets/block.png',
+            'assets/block.webp',
+            'assets/block.jpg',
+            'assets/3d_dirt.png',
+            'assets/3d_dirt.webp',
+            'assets/3d_dirt.jpg'
         ];
         for (const src of candidates) {
             const img = new Image();
@@ -3647,9 +3668,9 @@
 
         const consumables = [
             { key: 'dynamite', label: 'Dynamite (1x3)', action: () => applyAutoTool('dynamite') },
-            { key: 'mega_dynamite', label: 'Mega Dynamite (1x5)', action: () => applyAutoTool('mega_dynamite') },
+            { key: 'mega_dynamite', label: 'Better Dynamite (1x5)', action: () => applyAutoTool('mega_dynamite') },
             { key: 'nuke', label: 'Bomb (3x3)', action: () => applyAutoTool('nuke') },
-            { key: 'mega_nuke', label: 'Mega Nuke (5x5)', action: () => applyAutoTool('mega_nuke') },
+            { key: 'mega_nuke', label: 'Better Bomb (5x5)', action: () => applyAutoTool('mega_nuke') },
             { key: 'void_charge', label: 'Void Charge (10 Down)', action: () => applyAutoTool('void_charge') }
         ];
 
@@ -3922,7 +3943,9 @@
         }
 
         if (settings.is25DMode !== undefined) {
-            is25DMode = settings.is25DMode !== false;
+            is25DMode = Boolean(settings.is25DMode);
+        } else {
+            is25DMode = false;
         }
         update25DModeUI();
     }
