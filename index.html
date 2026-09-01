@@ -2882,8 +2882,32 @@
         return '#1d2433';
     }
 
+    function drawBackground() {
+        const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        sky.addColorStop(0, '#091823');
+        sky.addColorStop(0.45, '#132b3f');
+        sky.addColorStop(0.72, '#0f1e2d');
+        sky.addColorStop(1, '#070b10');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const haze = ctx.createRadialGradient(canvas.width * 0.5, canvas.height * 0.18, 10, canvas.width * 0.5, canvas.height * 0.18, canvas.width * 0.6);
+        haze.addColorStop(0, 'rgba(120, 166, 255, 0.28)');
+        haze.addColorStop(0.35, 'rgba(75, 104, 164, 0.12)');
+        haze.addColorStop(1, 'rgba(10, 15, 20, 0)');
+        ctx.fillStyle = haze;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const floorFade = ctx.createLinearGradient(0, canvas.height * 0.62, 0, canvas.height);
+        floorFade.addColorStop(0, 'rgba(11, 20, 28, 0)');
+        floorFade.addColorStop(1, 'rgba(7, 12, 16, 0.88)');
+        ctx.fillStyle = floorFade;
+        ctx.fillRect(0, canvas.height * 0.62, canvas.width, canvas.height * 0.38);
+    }
+
     function render2D() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBackground();
         ensureLoadedArea(player.x, player.y);
 
         const DEPTH = is25DMode ? 6 : 0;
@@ -2895,6 +2919,21 @@
         const endTileX = startTileX + Math.ceil(canvas.width / TILE_SIZE) + 4;
         const startTileY = Math.floor(-offsetY / TILE_SIZE) - 2;
         const endTileY = startTileY + Math.ceil(canvas.height / TILE_SIZE) + 4;
+
+        const pSX = canvas.width / 2 - TILE_SIZE / 2;
+        const pSY = canvas.height / 2 - TILE_SIZE / 2 - DEPTH;
+
+        if (DEPTH > 0) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width / 2, canvas.height / 2 + TILE_SIZE / 4, TILE_SIZE / 2 - 4, TILE_SIZE / 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#1d4ed8';
+            ctx.fillRect(pSX + 4, pSY + TILE_SIZE - 4 - DEPTH / 2, TILE_SIZE - 8, DEPTH / 2 + 4);
+        }
+
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillRect(pSX + 4, pSY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
 
         for (let y = startTileY; y <= endTileY; y++) {
             for (let x = startTileX; x <= endTileX; x++) {
@@ -3032,22 +3071,6 @@
             drawQuestGiver(giver, screenX, screenY);
         });
 
-        // Draw Player
-        const pSX = canvas.width / 2 - TILE_SIZE / 2;
-        const pSY = canvas.height / 2 - TILE_SIZE / 2 - DEPTH;
-
-        if (DEPTH > 0) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-            ctx.beginPath();
-            ctx.ellipse(canvas.width / 2, canvas.height / 2 + TILE_SIZE / 4, TILE_SIZE / 2 - 4, TILE_SIZE / 6, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#1d4ed8';
-            ctx.fillRect(pSX + 4, pSY + TILE_SIZE - 4 - DEPTH / 2, TILE_SIZE - 8, DEPTH / 2 + 4);
-        }
-
-        ctx.fillStyle = '#3b82f6';
-        ctx.fillRect(pSX + 4, pSY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
 
         ctx.fillStyle = '#ffffff';
         const eyeX = pSX + 16 + (player.dirX * 6);
